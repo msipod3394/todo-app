@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "figma-developer-mcp": {
+      "command": "npx",
+      "args": [
+        "figma-developer-mcp",
+        "--stdio"
+      ]
+    },
+    "vue-mcp": {
+      "url": "http://localhost:5173/__mcp/sse"
+    }
+  }
+}
