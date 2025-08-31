@@ -45,4 +45,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Todoとのリレーション
+    public function todos()
+    {
+        // 1対多: Userは複数のTodoを持つ
+        return $this->hasMany(Todo::class);
+    }
 }
