@@ -74,4 +74,85 @@ class AuthApiTest extends TestCase
         $response->assertStatus(422)
                 ->assertJsonValidationErrors(['email']);
     }
+
+    /** @test */
+    public function ログインが成功する()
+    {
+        // 事前にユーザーを作成
+        $user = User::create([
+            'name' => 'Test User',
+            'email' => 'login@example.com',
+            'password' => bcrypt('password123')
+        ]);
+
+        $response = $this->postJson('/api/signin', [
+            'email' => 'login@example.com',
+            'password' => 'password123'
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'message',
+                    'user' => ['id', 'name', 'email', 'created_at'],
+                    'token'
+                ]);
+    }
+
+    /** @test */
+    public function 存在しないメールアドレスでログイン失敗()
+    {
+        $response = $this->postJson('/api/signin', [
+            'email' => 'nonexistent@example.com',
+            'password' => 'password123'
+        ]);
+
+        $response->assertStatus(401)
+                ->assertJson([
+                    'message' => 'メールアドレスまたはパスワードが間違っています。'
+                ]);
+    }
+
+    /** @test */
+    public function 間違ったパスワードでログイン失敗()
+    {
+        // 事前にユーザーを作成
+        User::create([
+            'name' => 'Test User',
+            'email' => 'wrong@example.com',
+            'password' => bcrypt('correctpassword')
+        ]);
+
+        $response = $this->postJson('/api/signin', [
+            'email' => 'wrong@example.com',
+            'password' => 'wrongpassword'
+        ]);
+
+        $response->assertStatus(401)
+                ->assertJson([
+                    'message' => 'メールアドレスまたはパスワードが間違っています。'
+                ]);
+    }
+
+    /** @test */
+    public function ログアウトが成功する()
+    {
+        // 事前にユーザーを作成してログイン
+        $user = User::create([
+            'name' => 'Test User',
+            'email' => 'logout@example.com',
+            'password' => bcrypt('password123')
+        ]);
+        
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json'
+        ])->postJson('/api/signout');
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'message' => 'ログアウトしました。'
+                ]);
+    }
 }
