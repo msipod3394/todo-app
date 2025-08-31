@@ -155,4 +155,48 @@ class AuthApiTest extends TestCase
                     'message' => 'ログアウトしました。'
                 ]);
     }
+
+    /** @test */
+    public function 認証なしでは保護されたルートにアクセスできない()
+    {
+        $response = $this->getJson('/api/me');
+
+        $response->assertStatus(401);
+    }
+
+    /** @test */
+    public function 無効なトークンでは保護されたルートにアクセスできない()
+    {
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer invalid-token',
+            'Accept' => 'application/json'
+        ])->getJson('/api/me');
+
+        $response->assertStatus(401);
+    }
+
+    /** @test */
+    public function 有効なトークンでは保護されたルートにアクセスできる()
+    {
+        // ユーザー作成とトークン発行
+        $user = User::create([
+            'name' => 'Test User',
+            'email' => 'protected@example.com',
+            'password' => bcrypt('password123')
+        ]);
+        
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json'
+        ])->getJson('/api/me');
+
+        $response->assertStatus(200)
+                ->assertJson([
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email
+                ]);
+    }
 }
