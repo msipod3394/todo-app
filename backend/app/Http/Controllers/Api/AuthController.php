@@ -47,4 +47,53 @@ class AuthController extends Controller
             'token' => $token,
         ], 201);
     }
+
+    public function signin(Request $request)
+    {
+        // バリデーション実行
+        $validatedData = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ], [
+            // カスタムエラーメッセージ（日本語）
+            'email.required' => 'メールアドレスは必須です。',
+            'email.email' => '正しいメールアドレス形式で入力してください。',
+            'password.required' => 'パスワードは必須です。',
+        ]);
+
+        // メールアドレスでユーザー検索
+        $user = User::where('email', $validatedData['email'])->first();
+
+        // ユーザーが存在しない、またはパスワードが間違っている場合
+        if (!$user || !Hash::check($validatedData['password'], $user->password)) {
+            return response()->json([
+                'message' => 'メールアドレスまたはパスワードが間違っています。',
+            ], 401);
+        }
+
+        // 認証成功：トークン生成
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // 成功レスポンス
+        return response()->json([
+            'message' => 'ログインに成功しました。',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'created_at' => $user->created_at,
+            ],
+            'token' => $token,
+        ], 200);
+    }
+
+    public function signout(Request $request)
+    {
+        // 現在のユーザーの全トークンを削除
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'ログアウトしました。',
+        ], 200);
+    }
 }
