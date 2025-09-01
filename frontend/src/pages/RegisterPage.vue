@@ -27,11 +27,18 @@
       :is-register="true"
       @submit="handleRegister"
     />
+
+    <!-- エラーメッセージ表示 -->
+    <div v-if="authStore.hasErrors && !showSuccessModal" class="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-sm">
+      <div v-for="error in authStore.errors" :key="error">
+        {{ error }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import AuthForm from "@/components/AuthForm.vue";
 import { Button } from "@/components/ui/button";
@@ -43,19 +50,21 @@ const authStore = useAuthStore();
 const showSuccessModal = ref<boolean>(false);
 
 const handleRegister = async (formData: AuthFormData): Promise<void> => {
-  try {
-    const success = await authStore.register(formData);
-    if (success) {
-      // 登録成功時は完了モーダルを表示
-      showSuccessModal.value = true;
-    }
-  } catch (error) {
-    console.error("新規登録に失敗しました:", error);
-    // エラーハンドリング（実際のプロジェクトではトーストやエラーメッセージ表示）
+  const result = await authStore.register(formData);
+  
+  if (result.success) {
+    // 登録成功時は完了モーダルを表示
+    showSuccessModal.value = true;
   }
+  // エラーの場合はストア内でエラーメッセージがセットされる
 };
 
 const redirectToLogin = (): void => {
   router.push("/login");
 };
+
+// コンポーネント初期化時にエラーをクリア
+onMounted(() => {
+  authStore.clearErrors();
+});
 </script>

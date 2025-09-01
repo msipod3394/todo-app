@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- App Header -->
-    <AppHeader :user-email="userEmail" @logout="handleLogout" />
+    <AppHeader />
     <!-- Main Content -->
     <div class="pt-16 px-0 flex justify-center">
       <div class="w-[680px]">
@@ -72,10 +72,10 @@ const todoStore = useTodoStore();
 const authStore = useAuthStore();
 const router = useRouter();
 
-// User state - 認証ストアから取得
-const userEmail = computed(
-  () => authStore.currentUser?.email || "guest@example.com"
-);
+// User state - 認証ストアから取得（AppHeaderで直接使用するため不要）
+// const userEmail = computed(
+//   () => authStore.currentUser?.email || "guest@example.com"
+// );
 
 // Computed properties from store (reactive access)
 const incompleteTasks = computed(() => todoStore.incompleteTasks);
@@ -103,14 +103,15 @@ const handleDeleteAllCompleted = (): void => {
   todoStore.deleteAllCompleted();
 };
 
-const handleLogout = async (): Promise<void> => {
-  try {
-    await authStore.logout();
-    router.push("/login");
-  } catch (error) {
-    console.error("ログアウトエラー:", error);
-  }
-};
+// handleLogoutはAppHeaderで直接処理されるため不要
+// const handleLogout = async (): Promise<void> => {
+//   try {
+//     await authStore.logout();
+//     router.push("/login");
+//   } catch (error) {
+//     console.error("ログアウトエラー:", error);
+//   }
+// };
 
 // Initialize sample data on mount
 onMounted(() => {

@@ -1,172 +1,204 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { AuthFormData } from "@/lib/validation";
+import { API_ENDPOINTS, createAuthenticatedRequest, handleApiError } from "@/lib/api";
 
 interface User {
   id: number;
+  name: string;
   email: string;
-  createdAt: string;
+  created_at: string;
+}
+
+interface LoginResponse {
+  message: string;
+  user: User;
+  token: string;
+}
+
+interface RegisterResponse {
+  message: string;
+  user: User;
+  token: string;
 }
 
 export const useAuthStore = defineStore("auth", () => {
   // State
   const currentUser = ref<User | null>(null);
+  const token = ref<string | null>(null);
   const isLoading = ref<boolean>(false);
-  const isAuthenticated = computed(() => !!currentUser.value);
+  const errors = ref<string[]>([]);
+  
+  // Getters
+  const isAuthenticated = computed(() => !!(currentUser.value && token.value));
+  const userName = computed(() => currentUser.value?.name || 'ゲスト');
+  const hasErrors = computed(() => errors.value.length > 0);
 
   // Actions
-  const login = async (formData: AuthFormData): Promise<boolean> => {
+  const login = async (formData: AuthFormData): Promise<{ success: boolean; message?: string }> => {
     isLoading.value = true;
+    errors.value = [];
 
     try {
-      // バリデーション通過時は即座にログイン成功（開発用）
-      // 実際のAPI呼び出しをシミュレート
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // バリデーションが通ったメールアドレスでユーザーを作成
-      currentUser.value = {
-        id: Date.now(),
-        email: formData.email,
-        createdAt: new Date().toISOString(),
-      };
-
-      // ローカルストレージに保存
-      localStorage.setItem("authUser", JSON.stringify(currentUser.value));
-
-      return true;
-
-      /* TODO: 後で実際の認証APIに置き換え予定
-      // 実際のAPI呼び出し
-      const response = await fetch('/api/auth/login', {
+      // バックエンドAPI呼び出し
+      const response = await fetch(API_ENDPOINTS.SIGNIN, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
       });
 
-      if (!response.ok) {
-        throw new Error('認証に失敗しました。');
+      if (response.ok) {
+        const data: LoginResponse = await response.json();
+        
+        // ストア更新
+        currentUser.value = data.user;
+        token.value = data.token;
+        
+        // ローカルストレージ保存
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authUser', JSON.stringify(data.user));
+        
+        return { success: true, message: data.message };
+      } else {
+        const errorMessages = await handleApiError(response);
+        errors.value = errorMessages;
+        return { success: false, message: errorMessages.join(' ') };
       }
-
-      const userData = await response.json();
-      currentUser.value = userData.user;
-      
-      // JWTトークンをローカルストレージに保存
-      localStorage.setItem('authToken', userData.token);
-      localStorage.setItem("authUser", JSON.stringify(userData.user));
-
-      return true;
-      */
     } catch (error) {
+      const errorMessage = 'ネットワークエラーが発生しました。';
+      errors.value = [errorMessage];
       console.error("ログインエラー:", error);
-      throw error;
+      return { success: false, message: errorMessage };
     } finally {
       isLoading.value = false;
     }
   };
 
-  const register = async (formData: AuthFormData): Promise<boolean> => {
+  const register = async (formData: AuthFormData): Promise<{ success: boolean; message?: string }> => {
     isLoading.value = true;
+    errors.value = [];
 
     try {
-      // バリデーション通過時は即座に登録成功（開発用）
-      // 実際のAPI呼び出しをシミュレート
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // バリデーションが通ったメールアドレスで新規ユーザーを作成
-      const newUser: User = {
-        id: Date.now(),
-        email: formData.email,
-        createdAt: new Date().toISOString(),
-      };
-
-      currentUser.value = newUser;
-
-      // ローカルストレージに保存
-      localStorage.setItem("authUser", JSON.stringify(currentUser.value));
-
-      return true;
-
-      /* TODO: 後で実際の新規登録APIに置き換え予定
-      // 実際のAPI呼び出し
-      const response = await fetch('/api/auth/register', {
+      // バックエンドAPI呼び出し
+      const response = await fetch(API_ENDPOINTS.SIGNUP, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '新規登録に失敗しました。');
+      if (response.ok) {
+        const data: RegisterResponse = await response.json();
+        
+        // ストア更新
+        currentUser.value = data.user;
+        token.value = data.token;
+        
+        // ローカルストレージ保存
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authUser', JSON.stringify(data.user));
+        
+        return { success: true, message: data.message };
+      } else {
+        const errorMessages = await handleApiError(response);
+        errors.value = errorMessages;
+        return { success: false, message: errorMessages.join(' ') };
       }
-
-      const userData = await response.json();
-      currentUser.value = userData.user;
-      
-      // JWTトークンをローカルストレージに保存
-      localStorage.setItem('authToken', userData.token);
-      localStorage.setItem("authUser", JSON.stringify(userData.user));
-
-      return true;
-      */
     } catch (error) {
-      console.error("新規登録エラー:", error);
-      throw error;
+      const errorMessage = 'ネットワークエラーが発生しました。';
+      errors.value = [errorMessage];
+      console.error("ユーザー登録エラー:", error);
+      return { success: false, message: errorMessage };
     } finally {
       isLoading.value = false;
     }
   };
 
-  const logout = async (): Promise<void> => {
+  const logout = async (): Promise<{ success: boolean; message?: string }> => {
     try {
-      // 開発用: 即座にログアウト
-      currentUser.value = null;
-      localStorage.removeItem("authUser");
-
-      /* TODO: 後で実際のログアウトAPIに置き換え予定
-      // 実際のAPI呼び出し
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        await fetch('/api/auth/logout', {
+      // バックエンドAPI呼び出し
+      const authToken = token.value || localStorage.getItem('authToken');
+      
+      if (authToken) {
+        await fetch(API_ENDPOINTS.SIGNOUT, {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+          ...createAuthenticatedRequest(authToken)
         });
       }
       
+      // ストアリセット
+      currentUser.value = null;
+      token.value = null;
+      errors.value = [];
+      
+      // ローカルストレージクリア
       localStorage.removeItem('authToken');
-      localStorage.removeItem("authUser");
-      */
+      localStorage.removeItem('authUser');
+      
+      return { success: true, message: 'ログアウトしました。' };
     } catch (error) {
       console.error("ログアウトエラー:", error);
-      throw error;
+      
+      // エラーが発生してもローカルの状態はクリア
+      currentUser.value = null;
+      token.value = null;
+      errors.value = [];
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+      
+      return { success: false, message: 'ログアウト処理でエラーが発生しましたが、ローカル状態はクリアされました。' };
     }
   };
 
   const initializeAuth = (): void => {
     // ページリロード時に認証状態を復元
     const storedUser = localStorage.getItem("authUser");
-    if (storedUser) {
+    const storedToken = localStorage.getItem("authToken");
+    
+    if (storedUser && storedToken) {
       try {
         currentUser.value = JSON.parse(storedUser);
+        token.value = storedToken;
       } catch (error) {
         console.error("認証状態の復元に失敗:", error);
         localStorage.removeItem("authUser");
+        localStorage.removeItem("authToken");
       }
     }
+  };
+
+  const clearErrors = (): void => {
+    errors.value = [];
   };
 
   return {
     // State
     currentUser,
+    token,
     isLoading,
+    errors,
+
+    // Getters
     isAuthenticated,
+    userName,
+    hasErrors,
 
     // Actions
     login,
     register,
     logout,
     initializeAuth,
+    clearErrors,
   };
 });
