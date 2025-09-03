@@ -4,62 +4,41 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Todo;
+use Illuminate\Http\JsonResponse;
 
 class TodoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Todo登録API
      */
-    public function index()
+    public function store(Request $request): JsonResponse
     {
-        //
-    }
+        try {
+            // バリデーションチェック
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'deadline_date' => 'nullable|date|after_or_equal:today',
+            ]);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+            // 認証ユーザーのIDを追加
+            $validated['user_id'] = $request->user()->id;
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+            // TODOを作成
+            $todo = Todo::create($validated);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+            // 作成されたTODOを返却
+            return response()->json([
+                'message' => 'TODOが正常に作成されました',
+                'data' => $todo
+            ], 201);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        } catch (\Exception $e) {
+            // エラー時
+            return response()->json([
+                'message' => 'TODOの作成に失敗しました',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
