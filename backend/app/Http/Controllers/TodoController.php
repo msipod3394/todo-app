@@ -17,8 +17,8 @@ class TodoController extends Controller
         try {
             // バリデーションチェック
             $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'deadline_date' => 'nullable|date|after_or_equal:today',
+                'title' => 'required|string|max:100', // タイトルは100文字以内
+                'deadline_date' => 'nullable|date|after_or_equal:today', // 期限は今日以降の日付
             ]);
 
             // 認証ユーザーのIDを追加
