@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-4">
-    <!-- Input Section -->
     <form @submit.prevent="handleSubmit" class="flex gap-2">
       <div class="flex-1 relative">
+        <!-- Todoの入力 -->
         <Input
           v-model="taskName"
           placeholder="新しいタスクを入力..."
@@ -13,8 +13,7 @@
           {{ errors.name }}
         </div>
       </div>
-
-      <!-- Calendar Button -->
+      <!-- 期限の入力 -->
       <Popover v-model:open="isCalendarOpen">
         <PopoverTrigger as-child>
           <Button variant="outline" size="icon" class="h-10 w-10" type="button">
@@ -28,8 +27,7 @@
           />
         </PopoverContent>
       </Popover>
-
-      <!-- Add Button -->
+      <!-- 追加ボタン -->
       <Button
         type="submit"
         class="h-10 px-4"
@@ -39,8 +37,7 @@
         <PlusIcon class="h-4 w-4" />
       </Button>
     </form>
-
-    <!-- Selected Date Display -->
+    <!-- 選択した期限の表示 -->
     <div v-if="selectedDate" class="text-xs text-gray-500">
       期限: {{ formatDate(selectedDate) }}
     </div>
@@ -77,64 +74,22 @@ const isSubmitting = ref<boolean>(false);
 const errors = reactive<Record<string, string>>({});
 
 // Methods
+
+// フォーム送信
 const handleSubmit = async () => {
-  if (isSubmitting.value) return;
+  try {
+    await emit("add-task", {
+      name: taskName.value.trim(), // 空白を削除
+      dueDate: selectedDate.value,
+    });
 
-  isSubmitting.value = true;
-
-  // Clear previous errors
-  Object.keys(errors).forEach((key) => {
-    delete errors[key];
-  });
-
-  // 日付を ISO 文字列に変換するヘルパー関数
-  const toISOString = (date: any): string | null => {
-    if (!date) return null;
-
-    try {
-      if (date instanceof Date) {
-        return date.toISOString().split("T")[0];
-      }
-
-      // DateValue オブジェクトや文字列の場合
-      let dateObj: Date;
-      if (date.toString && typeof date.toString === "function") {
-        dateObj = new Date(date.toString());
-      } else if (typeof date === "string") {
-        dateObj = new Date(date);
-      } else {
-        dateObj = new Date(date);
-      }
-
-      return dateObj.toISOString().split("T")[0];
-    } catch (error) {
-      console.warn("日付変換エラー:", error, date);
-      return null;
-    }
-  };
-
-  // Validate input
-  const validation = validateTask({
-    name: taskName.value,
-    dueDate: toISOString(selectedDate.value),
-  });
-
-  if (!validation.success) {
-    Object.assign(errors, validation.errors);
+    // フォームをリセット
+    taskName.value = "";
+    selectedDate.value = null;
     isSubmitting.value = false;
-    return;
+  } catch (error) {
+    console.error("フォーム送信エラー:", error);
   }
-
-  // Emit add task event
-  emit("add-task", {
-    name: taskName.value.trim(),
-    dueDate: toISOString(selectedDate.value),
-  });
-
-  // Reset form
-  taskName.value = "";
-  selectedDate.value = null;
-  isSubmitting.value = false;
 };
 
 const handleDateSelect = (date: any): void => {

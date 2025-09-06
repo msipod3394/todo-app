@@ -14,15 +14,6 @@
               0px 10px 15px -3px rgba(0, 0, 0, 0.1);
           "
         >
-          <!-- Title Section -->
-          <div class="px-6 pt-6">
-            <div class="text-center">
-              <h1 class="text-2xl font-bold text-gray-800 tracking-tight">
-                Todoリスト
-              </h1>
-            </div>
-          </div>
-
           <!-- Input Section -->
           <div class="p-6 border-b border-zinc-200">
             <TaskInput @add-task="handleAddTask" />
@@ -82,9 +73,19 @@ const incompleteTasks = computed(() => todoStore.incompleteTasks);
 const completedTasks = computed(() => todoStore.completedTasks);
 const totalTasks = computed(() => todoStore.totalTasks);
 
-// Methods
-const handleAddTask = (taskData: TaskData): void => {
-  todoStore.addTask(taskData.name, taskData.dueDate);
+/**
+ * Todoの追加
+ * @param taskData
+ */
+const handleAddTask = async (taskData: TaskData): Promise<void> => {
+  console.log("handleAddTask");
+  console.log("taskData", taskData);
+
+  try {
+    await todoStore.addTask(taskData.name, taskData.dueDate);
+  } catch (error) {
+    console.error("Todoの追加に失敗しました:", error);
+  }
 };
 
 const handleToggleTask = (id: number): void => {

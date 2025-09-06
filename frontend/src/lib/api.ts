@@ -1,15 +1,15 @@
 // API設定とヘルパー関数
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 // 認証付きAPIリクエストのヘルパー
 export const createAuthenticatedRequest = (token: string) => {
   return {
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`
-    }
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
   };
 };
 
@@ -32,7 +32,7 @@ export interface ApiErrorResponse {
 export const handleApiError = async (response: Response): Promise<string[]> => {
   try {
     const errorData: ApiErrorResponse = await response.json();
-    
+
     if (errorData.errors) {
       // バリデーションエラーの場合
       const messages: string[] = [];
@@ -46,9 +46,32 @@ export const handleApiError = async (response: Response): Promise<string[]> => {
       return [errorData.message];
     }
   } catch (e) {
-    console.error('Error parsing API response:', e);
+    console.error("Error parsing API response:", e);
   }
-  
+
   // デフォルトエラーメッセージ
-  return ['サーバーエラーが発生しました。'];
+  return ["サーバーエラーが発生しました。"];
+};
+
+// TODO登録API
+export const createTodo = async (
+  token: string,
+  todoData: {
+    title: string;
+    deadline_date?: string | null;
+  }
+) => {
+  // APIリクエスト
+  const response = await fetch(API_ENDPOINTS.TODOS, {
+    method: "POST",
+    headers: createAuthenticatedRequest(token).headers,
+    body: JSON.stringify(todoData),
+  });
+
+  // 成功時
+  if (!response.ok) {
+    throw new Error("Todo作成に失敗しました");
+  }
+
+  return await response.json();
 };

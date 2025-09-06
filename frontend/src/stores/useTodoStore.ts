@@ -1,10 +1,13 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { useAuthStore } from "./useAuthStore";
+import { createTodo } from "@/lib/api";
+import { format, isValid, parseISO } from "date-fns";
 
 export interface Task {
   id: number;
   name: string;
-  dueDate: string | null;
+  deadlineDate: string | null;
   completed: boolean;
   completedAt: Date | null;
   createdAt: Date;
@@ -12,7 +15,7 @@ export interface Task {
 
 export interface TaskUpdate {
   name?: string;
-  dueDate?: string | null;
+  deadlineDate?: string | null;
   completed?: boolean;
 }
 
@@ -37,17 +40,47 @@ export const useTodoStore = defineStore("todo", () => {
     return Math.round((completedTasks.value.length / totalTasks.value) * 100);
   });
 
-  // Actions
-  const addTask = (name: string, dueDate: string | null = null): void => {
-    const newTask: Task = {
-      id: nextId.value++,
-      name: name.trim(),
-      dueDate,
-      completed: false,
-      completedAt: null,
-      createdAt: new Date(),
-    };
-    tasks.value.push(newTask);
+  // Todo追加
+  const addTask = async (
+    name: string,
+    deadlineDate: string | null = null
+  ): Promise<void> => {
+    const authStore = useAuthStore();
+
+    if (!authStore.token) {
+      throw new Error("認証が必要です");
+    }
+
+    try {
+      // 日付を文字列形式に変換
+      const formattedDate = formatDateForApi(deadlineDate);
+
+      console.log("API送信データ:", {
+        title: name.trim(),
+        deadline_date: formattedDate,
+      });
+
+      // APIに送信
+      const response = await createTodo(authStore.token, {
+        title: name.trim(),
+        deadline_date: formattedDate,
+      });
+
+      // ローカル状態を更新
+      const newTask: Task = {
+        id: response.data.id, // API から返されたID
+        name: response.data.title,
+        deadlineDate: response.data.deadline_date,
+        completed: false,
+        completedAt: null,
+        createdAt: new Date(response.data.created_at),
+      };
+
+      tasks.value.push(newTask);
+    } catch (error) {
+      console.error("Todo作成エラー:", error);
+      throw error; // UIでエラーハンドリング
+    }
   };
 
   const deleteTask = (id: number): void => {
@@ -86,7 +119,7 @@ export const useTodoStore = defineStore("todo", () => {
       {
         id: 1,
         name: "買い物に行く",
-        dueDate: today.toISOString().split("T")[0],
+        deadlineDate: today.toISOString().split("T")[0],
         completed: false,
         completedAt: null,
         createdAt: new Date(),
@@ -94,7 +127,7 @@ export const useTodoStore = defineStore("todo", () => {
       {
         id: 2,
         name: "掃除をする",
-        dueDate: tomorrow.toISOString().split("T")[0],
+        deadlineDate: tomorrow.toISOString().split("T")[0],
         completed: false,
         completedAt: null,
         createdAt: new Date(),
@@ -102,7 +135,7 @@ export const useTodoStore = defineStore("todo", () => {
       {
         id: 3,
         name: "○○に連絡をする",
-        dueDate: today.toISOString().split("T")[0],
+        deadlineDate: today.toISOString().split("T")[0],
         completed: true,
         completedAt: new Date(),
         createdAt: new Date(),
@@ -110,7 +143,7 @@ export const useTodoStore = defineStore("todo", () => {
       {
         id: 4,
         name: "○○に連絡をする",
-        dueDate: tomorrow.toISOString().split("T")[0],
+        deadlineDate: tomorrow.toISOString().split("T")[0],
         completed: true,
         completedAt: new Date(),
         createdAt: new Date(),
@@ -119,6 +152,44 @@ export const useTodoStore = defineStore("todo", () => {
 
     tasks.value = sampleTasks;
     nextId.value = 5;
+  };
+
+  // 日付フォーマット用ヘルパー関数
+  const formatDateForApi = (dateValue: any): string | null => {
+    if (!dateValue) return null;
+
+    try {
+      let date: Date;
+
+      if (typeof dateValue === "string") {
+        // ISO文字列の場合
+        date = parseISO(dateValue);
+      } else if (dateValue instanceof Date) {
+        // Dateオブジェクトの場合
+        date = dateValue;
+      } else if (
+        dateValue.toString &&
+        typeof dateValue.toString === "function"
+      ) {
+        // DateValueオブジェクトや他のオブジェクトの場合
+        date = new Date(dateValue.toString());
+      } else {
+        // その他の場合はDateコンストラクタで変換を試行
+        date = new Date(dateValue);
+      }
+
+      // 有効な日付かチェック
+      if (!isValid(date)) {
+        console.warn("無効な日付:", dateValue);
+        return null;
+      }
+
+      // YYYY-MM-DD形式で返す
+      return format(date, "yyyy-MM-dd");
+    } catch (error) {
+      console.error("日付変換エラー:", error, dateValue);
+      return null;
+    }
   };
 
   return {
