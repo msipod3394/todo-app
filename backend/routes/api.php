@@ -12,13 +12,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return $request->user();
     });
 
-    // Todoのルート
-    Route::apiResource('todos', \App\Http\Controllers\TodoController::class);
-
-    // Todo一覧取得（未完了）
+    // カスタムルートを先に定義
     Route::get('/todos/uncompleted', [\App\Http\Controllers\TodoController::class, 'uncompleted']);
-
-    // Todo一覧取得（完了）
     Route::get('/todos/completed', [\App\Http\Controllers\TodoController::class, 'completed']);
+
+    // Todoのリソースルート
+    Route::apiResource('todos', \App\Http\Controllers\TodoController::class)
+        ->except(['show']);
 
 });

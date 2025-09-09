@@ -49,6 +49,9 @@ class TodoController extends Controller
      */
     public function index(Request $request): JsonResponse{
         try{
+            // ログ出力：どのメソッドが呼ばれたか確認
+            \Log::info('index() メソッドが呼ばれました');
+
             // ユーザーIDを取得
             $userId = $request->user()->id;
 
@@ -74,20 +77,62 @@ class TodoController extends Controller
     /**
      * Todo一覧取得（未完了）
      */
-    // public function uncompleted(Request $request): JsonResponse{
-    //     try{
-    //     } catch(\Exception $e){
-    //     }
-    // }
+    public function uncompleted(Request $request): JsonResponse{
+        try{
+            // ログ出力：どのメソッドが呼ばれたか確認
+            \Log::info('uncompleted() メソッドが呼ばれました');
+
+            // ユーザーIDを取得
+            $userId = $request->user()->id;
+
+            // todo取得
+            $todos = Todo::where('user_id', $userId) // ユーザーIDで絞り込み
+            ->whereNull('completed_at') // 完了日時がnull
+            ->orderBy('created_at', 'desc') // 作成日時で降順
+            ->get();
+
+            // レスポンス
+            return response()->json([
+                'message' => '未完了のTodo一覧を取得しました',
+                'data' => $todos
+            ]);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'message' => '未完了のTodo一覧の取得に失敗しました',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
     /**
      * Todo一覧取得（完了）
      */
-    // public function completed(Request $request): JsonResponse{
-    //     try{
-    //     } catch(\Exception $e){
-    //     }
-    // }
+    public function completed(Request $request): JsonResponse{
+        try{
+            // ユーザーIDを取得
+            $userId = $request->user()->id;
+
+            // todo取得
+            $todos = Todo::where('user_id', $userId) // ユーザーIDで絞り込み
+            ->whereNotNull('completed_at') // 完了日時がnullではない
+            ->orderBy('created_at', 'desc') // 作成日時で降順
+            ->get();
+
+            // レスポンス
+            return response()->json([
+                'message' => '完了したTodo一覧を取得しました',
+                'data' => $todos
+            ]);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'message' => '完了したTodo一覧の取得に失敗しました',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 }
