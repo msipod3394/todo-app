@@ -14,4 +14,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Todoのルート
     Route::apiResource('todos', \App\Http\Controllers\TodoController::class);
+
+    // Todo一覧取得（未完了）
+    Route::get('/todos/uncompleted', [\App\Http\Controllers\TodoController::class, 'uncompleted']);
+
+    // Todo一覧取得（完了）
+    Route::get('/todos/completed', [\App\Http\Controllers\TodoController::class, 'completed']);
+
 });
