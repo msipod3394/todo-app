@@ -30,4 +30,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Todoを未完了にする
     Route::patch('/todos/{id}/uncompleted', [\App\Http\Controllers\TodoController::class, 'markUncompleted']);
+
 });

@@ -203,6 +203,34 @@ class TodoController extends Controller
     /**
      * Todoを削除する
      */
-    //  public function delete
+     public function destroy(Request $request, int $id): JsonResponse{
+        try{
+            // ユーザーIDを取得
+            $userId = $request->user()->id;
+
+            // todoを取得
+            $todo = Todo::where('user_id', $userId) // ユーザーIDで絞り込み
+            ->find($id); // 指定されたIDのTodoを取得
+
+            if(!$todo){
+                // todoが存在しない場合
+                return response()->json([
+                    'message' => 'Todoが存在しません',
+                ], 400);
+            } else {
+                // todoが存在する場合
+                // todoを削除
+                $todo->delete();
+                return response()->json([
+                    'message' => 'Todoが正常に削除されました',
+                ]);
+            }
+        } catch(\Exception $e){
+            return response()->json([
+                'message' => 'Todoの削除に失敗しました',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 }
