@@ -49,8 +49,6 @@ class TodoController extends Controller
      */
     public function index(Request $request): JsonResponse{
         try{
-            // ログ出力：どのメソッドが呼ばれたか確認
-            \Log::info('index() メソッドが呼ばれました');
 
             // ユーザーIDを取得
             $userId = $request->user()->id;
@@ -79,8 +77,6 @@ class TodoController extends Controller
      */
     public function uncompleted(Request $request): JsonResponse{
         try{
-            // ログ出力：どのメソッドが呼ばれたか確認
-            \Log::info('uncompleted() メソッドが呼ばれました');
 
             // ユーザーIDを取得
             $userId = $request->user()->id;
@@ -134,5 +130,39 @@ class TodoController extends Controller
         }
     }
 
+    /**
+     * Todoを完了にする
+     */
+    public function markCompleted(Request $request, int $id): JsonResponse{
+        try{
+            // ユーザーIDを取得
+            $userId = $request->user()->id;
+
+            // 完了にするtodoを取得
+            $todo = Todo::where('user_id', $userId) // ユーザーIDで絞り込み
+            ->find($id); // 指定されたIDのTodoを取得
+
+            if(!$todo){
+                // todoが存在しない場合
+                return response()->json([
+                    'message' => 'Todoが存在しません',
+                ], 400);
+            } else {
+                // todoが存在する場合
+                // 完了日時を更新
+                $todo->update(['completed_at' => now()]);
+
+                return response()->json([
+                    'message' => 'Todoを完了にしました',
+                    'data' => $todo
+                ]);
+            }
+         } catch(\Exception $e){
+            return response()->json([
+                'message' => 'Todoの更新に失敗しました',
+                'error' => $e->getMessage()
+            ], 500);
+         }
+    }
 
 }
