@@ -233,4 +233,55 @@ class TodoController extends Controller
         }
     }
 
+    /**
+     * Todoを更新する
+     */
+    public function update(Request $request, int $id): JsonResponse{
+        try{
+            // バリデーション
+            $request->validate([
+                'title' => 'required|string|max:100',
+                'deadline_date' => 'nullable|date|after_or_equal:today',
+            ]);
+
+            // ユーザーIDを取得
+            $userId = $request->user()->id;
+
+            // 更新するtodoを取得
+            $todo = Todo::where('user_id', $userId)
+                ->find($id);
+
+            if(!$todo){
+                return response()->json([
+                    'message' => 'Todoが存在しません',
+                ], 404);
+            }
+
+            // todoを更新
+            $todo->update([
+                'title' => $request->title,
+                'deadline_date' => $request->deadline_date,
+            ]);
+
+            // 更新後のデータを取得
+            $todo->refresh();
+
+            return response()->json([
+                'message' => 'Todoを更新しました',
+                'data' => $todo
+            ]);
+
+         } catch(\Illuminate\Validation\ValidationException $e){
+            return response()->json([
+                'message' => 'バリデーションエラーが発生しました',
+                'errors' => $e->errors()
+            ], 422);
+         } catch(\Exception $e){
+            return response()->json([
+                'message' => 'Todoの更新に失敗しました',
+                'error' => $e->getMessage()
+            ], 500);
+         }
+    }
+
 }

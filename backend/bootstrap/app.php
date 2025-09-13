@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
 
+        // API専用の認証設定 - 未認証時はJSONレスポンスを返す
+        $middleware->redirectGuestsTo(fn () => null);
+
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
