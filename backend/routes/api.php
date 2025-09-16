@@ -15,6 +15,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return $request->user();
     });
 
+    // 認証ユーザー情報取得
+    Route::get('/me', [\App\Http\Controllers\UserController::class, 'me']);
+
     // ★カスタムルートを先に定義
     // 未完了のTodo一覧取得
     Route::get('/todos/uncompleted', [\App\Http\Controllers\TodoController::class, 'uncompleted']);
