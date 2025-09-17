@@ -10,7 +10,7 @@ import {
 } from "@/lib/api";
 import { format, isValid, parseISO } from "date-fns";
 
-export interface Task {
+export interface Todo {
   id: number;
   title: string;
   deadlineDate: string | null;
@@ -19,7 +19,7 @@ export interface Task {
   createdAt: Date;
 }
 
-export interface TaskUpdate {
+export interface TodoUpdate {
   title?: string;
   deadlineDate?: string | null;
   completed?: boolean;
@@ -27,29 +27,29 @@ export interface TaskUpdate {
 
 export const useTodoStore = defineStore("todo", () => {
   // State
-  const tasks = ref<Task[]>([]);
+  const todos = ref<Todo[]>([]);
 
   // Getters
-  const incompleteTasks = computed(() =>
-    tasks.value.filter((task) => !task.completed)
+  const incompleteTodos = computed(() =>
+    todos.value.filter((todo) => !todo.completed)
   );
 
   // 完了したTodo一覧
-  const completedTasks = computed(() =>
-    tasks.value.filter((task) => task.completed)
+  const completedTodos = computed(() =>
+    todos.value.filter((todo) => todo.completed)
   );
 
   // 全てのTodo数
-  const totalTasks = computed(() => tasks.value.length);
+  const totalTodos = computed(() => todos.value.length);
 
   // 進捗率
   const progress = computed(() => {
-    if (totalTasks.value === 0) return 0;
-    return Math.round((completedTasks.value.length / totalTasks.value) * 100);
+    if (totalTodos.value === 0) return 0;
+    return Math.round((completedTodos.value.length / totalTodos.value) * 100);
   });
 
   // Todo追加
-  const addTask = async (
+  const addTodo = async (
     name: string,
     deadlineDate: string | null = null
   ): Promise<void> => {
@@ -75,7 +75,7 @@ export const useTodoStore = defineStore("todo", () => {
       });
 
       // ローカル状態を更新
-      const newTask: Task = {
+      const newTodo: Todo = {
         id: response.data.id, // API から返されたID
         title: response.data.title,
         deadlineDate: response.data.deadline_date,
@@ -84,7 +84,7 @@ export const useTodoStore = defineStore("todo", () => {
         createdAt: new Date(response.data.created_at),
       };
 
-      tasks.value.push(newTask);
+      todos.value.push(newTodo);
     } catch (error) {
       console.error("Todo作成エラー:", error);
       throw error; // UIでエラーハンドリング
@@ -93,11 +93,11 @@ export const useTodoStore = defineStore("todo", () => {
 
   // Todo完了状態削除
   const deleteAllCompleted = (): void => {
-    tasks.value = tasks.value.filter((task) => !task.completed);
+    todos.value = todos.value.filter((todo) => !todo.completed);
   };
 
   // TODOの完了・未完了状態を切り替え
-  const toggleTask = async (id: number): Promise<void> => {
+  const toggleTodo = async (id: number): Promise<void> => {
     // 認証ストア取得
     const authStore = useAuthStore();
 
@@ -107,22 +107,22 @@ export const useTodoStore = defineStore("todo", () => {
 
     try {
       // Todoを取得
-      const task = tasks.value.find((task) => task.id === id);
+      const todo = todos.value.find((todo) => todo.id === id);
 
-      if (!task) {
+      if (!todo) {
         throw new Error("Todoが見つかりません");
       }
 
-      if (task.completed) {
+      if (todo.completed) {
         // TODOが完了している場合、未完了にする
         await markTodoUncompleted(authStore.token, id);
-        task.completed = false;
-        task.completedAt = null;
+        todo.completed = false;
+        todo.completedAt = null;
       } else {
         // TODOが未完了している場合、完了にする
         await markTodoCompleted(authStore.token, id);
-        task.completed = true;
-        task.completedAt = new Date();
+        todo.completed = true;
+        todo.completedAt = new Date();
       }
     } catch (error) {
       console.error("Todo完了状態切り替えエラー:", error);
@@ -131,10 +131,10 @@ export const useTodoStore = defineStore("todo", () => {
   };
 
   // Todoの内容を更新
-  const updateTask = (id: number, updates: TaskUpdate): void => {
-    const task = tasks.value.find((task) => task.id === id);
-    if (task) {
-      Object.assign(task, updates);
+  const updateTodo = (id: number, updates: TodoUpdate): void => {
+    const todo = todos.value.find((todo) => todo.id === id);
+    if (todo) {
+      Object.assign(todo, updates);
     }
   };
 
@@ -153,7 +153,7 @@ export const useTodoStore = defineStore("todo", () => {
       const res = await fetchTodos(authStore.token);
 
       // APIレスポンスをフロントエンドに合わせて変換
-      tasks.value = res.data.map((todo: any) => ({
+      todos.value = res.data.map((todo: any) => ({
         id: todo.id,
         title: todo.title,
         deadlineDate: todo.deadline_date,
@@ -168,7 +168,7 @@ export const useTodoStore = defineStore("todo", () => {
   };
 
   // Todo削除
-  const deleteTask = async (id: number): Promise<void> => {
+  const removeTodo = async (id: number): Promise<void> => {
     // 認証ストア取得
     const authStore = useAuthStore();
 
@@ -183,7 +183,7 @@ export const useTodoStore = defineStore("todo", () => {
       console.log("Todo削除成功:", id);
 
       // ローカルデータを更新
-      tasks.value = tasks.value.filter((task) => task.id !== id);
+      todos.value = todos.value.filter((todo) => todo.id !== id);
     } catch (error) {
       console.error("Todo削除エラー:", error);
       throw error;
@@ -275,20 +275,20 @@ export const useTodoStore = defineStore("todo", () => {
 
   return {
     // State
-    tasks,
+    todos,
 
     // Getters
-    incompleteTasks,
-    completedTasks,
-    totalTasks,
+    incompleteTodos,
+    completedTodos,
+    totalTodos,
     progress,
 
     // Actions
-    addTask,
-    deleteTask,
+    addTodo,
+    removeTodo,
     deleteAllCompleted,
-    toggleTask,
-    updateTask,
+    toggleTodo,
+    updateTodo,
     loadTodos,
     // initializeSampleData,
   };

@@ -23,17 +23,17 @@
           <div class="p-6 space-y-6">
             <!-- Progress Section -->
             <ProgressBar
-              :completed-count="completedTasks.length"
-              :total-count="totalTasks"
+              :completed-count="completedTodos.length"
+              :total-count="totalTodos"
             />
 
             <!-- Task Lists -->
             <TaskList
-              :incomplete-tasks="incompleteTasks"
-              :completed-tasks="completedTasks"
-              @toggle="handleToggleTask"
-              @delete="handleDeleteTask"
-              @update="handleUpdateTask"
+              :incomplete-tasks="incompleteTodos"
+              :completed-tasks="completedTodos"
+              @toggle="handleToggleTodo"
+              @delete="handleDeleteTodo"
+              @update="handleUpdateTodo"
               @delete-all-completed="handleDeleteAllCompleted"
             />
           </div>
@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useTodoStore, type TaskUpdate } from "@/stores/useTodoStore";
+import { useTodoStore, type TodoUpdate } from "@/stores/useTodoStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import AppHeader from "./AppHeader.vue";
 import TaskInput from "./TaskInput.vue";
@@ -69,9 +69,9 @@ const router = useRouter();
 // );
 
 // Computed properties from store (reactive access)
-const incompleteTasks = computed(() => todoStore.incompleteTasks);
-const completedTasks = computed(() => todoStore.completedTasks);
-const totalTasks = computed(() => todoStore.totalTasks);
+const incompleteTodos = computed(() => todoStore.incompleteTodos);
+const completedTodos = computed(() => todoStore.completedTodos);
+const totalTodos = computed(() => todoStore.totalTodos);
 
 /**
  * Todoの追加
@@ -82,35 +82,35 @@ const handleAddTask = async (taskData: TaskData): Promise<void> => {
   console.log("taskData", taskData);
 
   try {
-    await todoStore.addTask(taskData.name, taskData.dueDate);
+    await todoStore.addTodo(taskData.name, taskData.dueDate);
   } catch (error) {
     console.error("Todoの追加に失敗しました:", error);
   }
 };
 
 // Todo完了状態の切り替え
-const handleToggleTask = async (id: number): Promise<void> => {
+const handleToggleTodo = async (id: number): Promise<void> => {
   try {
-    await todoStore.toggleTask(id);
+    await todoStore.toggleTodo(id);
   } catch (error) {
     console.error("Todo完了状態の切り替えに失敗しました:", error);
   }
 };
 
-const handleDeleteTask = async (id: number): Promise<void> => {
+const handleDeleteTodo = async (id: number): Promise<void> => {
   try {
-    await todoStore.deleteTask(id);
+    await todoStore.removeTodo(id);
   } catch (error) {
     console.error("Todoの削除に失敗しました:", error);
   }
 };
 
-const handleUpdateTask = async (
+const handleUpdateTodo = async (
   id: number,
-  updates: TaskUpdate
+  updates: TodoUpdate
 ): Promise<void> => {
   try {
-    await todoStore.updateTask(id, updates);
+    await todoStore.updateTodo(id, updates);
   } catch (error) {
     console.error("Todoの更新に失敗しました:", error);
   }
