@@ -100,4 +100,40 @@ export const deleteTodo = async (token: string, id: number) => {
     method: "DELETE",
     headers: createAuthenticatedRequest(token).headers,
   });
+
+  // エラー時
+  if (!res.ok) {
+    throw new Error("Todo削除に失敗しました");
+  }
+
+  // レスポンスを返却
+  return await res.json();
+};
+
+// TODO完了API
+export const markTodoCompleted = async (token: string, id: number) => {
+  const res = await fetch(`${API_ENDPOINTS.TODOS}/${id}/completed`, {
+    method: "PATCH",
+    headers: createAuthenticatedRequest(token).headers,
+  });
+
+  if (!res.ok) {
+    throw new Error("Todoを完了に変更する処理に失敗しました");
+  }
+
+  return await res.json();
+};
+
+// TODO未完了API
+export const markTodoUncompleted = async (token: string, id: number) => {
+  const response = await fetch(`${API_ENDPOINTS.TODOS}/${id}/uncompleted`, {
+    method: "PATCH",
+    headers: createAuthenticatedRequest(token).headers,
+  });
+
+  if (!response.ok) {
+    throw new Error("Todo未完了状態の更新に失敗しました");
+  }
+
+  return await response.json();
 };

@@ -88,6 +88,7 @@ const handleAddTask = async (taskData: TaskData): Promise<void> => {
   }
 };
 
+// Todo完了状態の切り替え
 const handleToggleTask = async (id: number): Promise<void> => {
   try {
     await todoStore.toggleTask(id);
@@ -119,28 +120,17 @@ const handleDeleteAllCompleted = (): void => {
   todoStore.deleteAllCompleted();
 };
 
-// handleLogoutはAppHeaderで直接処理されるため不要
-// const handleLogout = async (): Promise<void> => {
-//   try {
-//     await authStore.logout();
-//     router.push("/login");
-//   } catch (error) {
-//     console.error("ログアウトエラー:", error);
-//   }
-// };
-
 // Initialize data on mount
 onMounted(async () => {
   try {
     // 認証されている場合はAPIからデータを取得
     if (authStore.isAuthenticated) {
       // APIからデータを取得
-      await todoStore.fetchTasks();
+      await todoStore.loadTodos();
+    } else {
+      // 認証されていない場合はサンプルデータを表示
+      // todoStore.initializeSampleData();
     }
-    // else {
-    //   // 認証されていない場合はサンプルデータを表示
-    //   todoStore.initializeSampleData();
-    // }
   } catch (error) {
     console.error("データの初期化に失敗しました:", error);
     // エラー時はサンプルデータを表示

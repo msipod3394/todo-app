@@ -1,7 +1,13 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useAuthStore } from "./useAuthStore";
-import { createTodo, deleteTodo, fetchTodos } from "@/lib/api";
+import {
+  createTodo,
+  deleteTodo,
+  fetchTodos,
+  markTodoCompleted,
+  markTodoUncompleted,
+} from "@/lib/api";
 import { format, isValid, parseISO } from "date-fns";
 
 export interface Task {
@@ -22,19 +28,21 @@ export interface TaskUpdate {
 export const useTodoStore = defineStore("todo", () => {
   // State
   const tasks = ref<Task[]>([]);
-  const nextId = ref<number>(1);
 
   // Getters
   const incompleteTasks = computed(() =>
     tasks.value.filter((task) => !task.completed)
   );
 
+  // 完了したTodo一覧
   const completedTasks = computed(() =>
     tasks.value.filter((task) => task.completed)
   );
 
+  // 全てのTodo数
   const totalTasks = computed(() => tasks.value.length);
 
+  // 進捗率
   const progress = computed(() => {
     if (totalTasks.value === 0) return 0;
     return Math.round((completedTasks.value.length / totalTasks.value) * 100);
@@ -88,16 +96,41 @@ export const useTodoStore = defineStore("todo", () => {
     tasks.value = tasks.value.filter((task) => !task.completed);
   };
 
-  // Todo完了状態切り替え
-  const toggleTask = (id: number): void => {
-    const task = tasks.value.find((task) => task.id === id);
-    if (task) {
-      task.completed = !task.completed;
-      task.completedAt = task.completed ? new Date() : null;
+  // TODOの完了・未完了状態を切り替え
+  const toggleTask = async (id: number): Promise<void> => {
+    // 認証ストア取得
+    const authStore = useAuthStore();
+
+    if (!authStore.token) {
+      throw new Error("認証が必要です");
+    }
+
+    try {
+      // Todoを取得
+      const task = tasks.value.find((task) => task.id === id);
+
+      if (!task) {
+        throw new Error("Todoが見つかりません");
+      }
+
+      if (task.completed) {
+        // TODOが完了している場合、未完了にする
+        await markTodoUncompleted(authStore.token, id);
+        task.completed = false;
+        task.completedAt = null;
+      } else {
+        // TODOが未完了している場合、完了にする
+        await markTodoCompleted(authStore.token, id);
+        task.completed = true;
+        task.completedAt = new Date();
+      }
+    } catch (error) {
+      console.error("Todo完了状態切り替えエラー:", error);
+      throw error;
     }
   };
 
-  // Todo更新
+  // Todoの内容を更新
   const updateTask = (id: number, updates: TaskUpdate): void => {
     const task = tasks.value.find((task) => task.id === id);
     if (task) {
@@ -106,7 +139,7 @@ export const useTodoStore = defineStore("todo", () => {
   };
 
   // Todo一覧取得
-  const fetchTasks = async (): Promise<void> => {
+  const loadTodos = async (): Promise<void> => {
     // 認証ストア取得
     const authStore = useAuthStore();
 
@@ -256,7 +289,7 @@ export const useTodoStore = defineStore("todo", () => {
     deleteAllCompleted,
     toggleTask,
     updateTask,
-    fetchTasks,
+    loadTodos,
     // initializeSampleData,
   };
 });
