@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useAuthStore } from "./useAuthStore";
-import { createTodo, fetchTodos } from "@/lib/api";
+import { createTodo, deleteTodo, fetchTodos } from "@/lib/api";
 import { format, isValid, parseISO } from "date-fns";
 
 export interface Task {
@@ -83,14 +83,6 @@ export const useTodoStore = defineStore("todo", () => {
     }
   };
 
-  // Todo削除
-  const deleteTask = (id: number): void => {
-    const index = tasks.value.findIndex((task) => task.id === id);
-    if (index > -1) {
-      tasks.value.splice(index, 1);
-    }
-  };
-
   // Todo完了状態削除
   const deleteAllCompleted = (): void => {
     tasks.value = tasks.value.filter((task) => !task.completed);
@@ -142,50 +134,73 @@ export const useTodoStore = defineStore("todo", () => {
     }
   };
 
-  // サンプルデータ初期化
-  const initializeSampleData = (): void => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+  // Todo削除
+  const deleteTask = async (id: number): Promise<void> => {
+    // 認証ストア取得
+    const authStore = useAuthStore();
 
-    const sampleTasks: Task[] = [
-      {
-        id: 1,
-        title: "買い物に行く",
-        deadlineDate: today.toISOString().split("T")[0],
-        completed: false,
-        completedAt: null,
-        createdAt: new Date(),
-      },
-      {
-        id: 2,
-        title: "掃除をする",
-        deadlineDate: tomorrow.toISOString().split("T")[0],
-        completed: false,
-        completedAt: null,
-        createdAt: new Date(),
-      },
-      {
-        id: 3,
-        title: "○○に連絡をする",
-        deadlineDate: today.toISOString().split("T")[0],
-        completed: true,
-        completedAt: new Date(),
-        createdAt: new Date(),
-      },
-      {
-        id: 4,
-        title: "○○に連絡をする",
-        deadlineDate: tomorrow.toISOString().split("T")[0],
-        completed: true,
-        completedAt: new Date(),
-        createdAt: new Date(),
-      },
-    ];
+    // 認証が必要な場合
+    if (!authStore.token) {
+      throw new Error("認証が必要です");
+    }
 
-    tasks.value = sampleTasks;
-    nextId.value = 5;
+    try {
+      // データを削除
+      await deleteTodo(authStore.token, id);
+      console.log("Todo削除成功:", id);
+
+      // ローカルデータを更新
+      tasks.value = tasks.value.filter((task) => task.id !== id);
+    } catch (error) {
+      console.error("Todo削除エラー:", error);
+      throw error;
+    }
   };
+
+  // サンプルデータ初期化
+  // const initializeSampleData = (): void => {
+  //   const today = new Date();
+  //   const tomorrow = new Date(today);
+  //   tomorrow.setDate(today.getDate() + 1);
+
+  //   const sampleTasks: Task[] = [
+  //     {
+  //       id: 1,
+  //       title: "買い物に行く",
+  //       deadlineDate: today.toISOString().split("T")[0],
+  //       completed: false,
+  //       completedAt: null,
+  //       createdAt: new Date(),
+  //     },
+  //     {
+  //       id: 2,
+  //       title: "掃除をする",
+  //       deadlineDate: tomorrow.toISOString().split("T")[0],
+  //       completed: false,
+  //       completedAt: null,
+  //       createdAt: new Date(),
+  //     },
+  //     {
+  //       id: 3,
+  //       title: "○○に連絡をする",
+  //       deadlineDate: today.toISOString().split("T")[0],
+  //       completed: true,
+  //       completedAt: new Date(),
+  //       createdAt: new Date(),
+  //     },
+  //     {
+  //       id: 4,
+  //       title: "○○に連絡をする",
+  //       deadlineDate: tomorrow.toISOString().split("T")[0],
+  //       completed: true,
+  //       completedAt: new Date(),
+  //       createdAt: new Date(),
+  //     },
+  //   ];
+
+  //   tasks.value = sampleTasks;
+  //   nextId.value = 5;
+  // };
 
   // 日付フォーマット用
   const formatDateForApi = (dateValue: any): string | null => {
@@ -242,6 +257,6 @@ export const useTodoStore = defineStore("todo", () => {
     toggleTask,
     updateTask,
     fetchTasks,
-    initializeSampleData,
+    // initializeSampleData,
   };
 });

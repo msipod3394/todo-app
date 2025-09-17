@@ -144,7 +144,7 @@ onMounted(async () => {
   } catch (error) {
     console.error("データの初期化に失敗しました:", error);
     // エラー時はサンプルデータを表示
-    todoStore.initializeSampleData();
+    // todoStore.initializeSampleData();
   }
 });
 </script>

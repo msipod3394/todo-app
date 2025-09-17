@@ -93,4 +93,11 @@ export const fetchTodos = async (token: string) => {
   return await res.json();
 };
 
-
+// TODO削除API
+export const deleteTodo = async (token: string, id: number) => {
+  // リクエストを送信
+  const res = await fetch(API_ENDPOINTS.TODOS + "/" + id, {
+    method: "DELETE",
+    headers: createAuthenticatedRequest(token).headers,
+  });
+};
