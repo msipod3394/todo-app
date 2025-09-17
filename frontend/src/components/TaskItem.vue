@@ -26,7 +26,7 @@
               'text-zinc-500 line-through': task.completed,
             }"
           >
-            {{ task.name }}
+            {{ task.title }}
           </div>
 
           <!-- Edit Mode -->
@@ -137,7 +137,7 @@ const startEdit = async (): Promise<void> => {
   if (props.task.completed) return;
 
   isEditing.value = true;
-  editName.value = props.task.name;
+  editName.value = props.task.title;
 
   await nextTick();
   if (editInput.value) {
@@ -146,8 +146,8 @@ const startEdit = async (): Promise<void> => {
 };
 
 const saveEdit = (): void => {
-  if (editName.value.trim() && editName.value.trim() !== props.task.name) {
-    emit("update", props.task.id, { name: editName.value.trim() });
+  if (editName.value.trim() && editName.value.trim() !== props.task.title) {
+    emit("update", props.task.id, { title: editName.value.trim() });
   }
   cancelEdit();
 };

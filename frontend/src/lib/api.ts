@@ -75,3 +75,22 @@ export const createTodo = async (
 
   return await response.json();
 };
+
+// TODO一覧取得API
+export const fetchTodos = async (token: string) => {
+  // リクエストを送信
+  const res = await fetch(API_ENDPOINTS.TODOS, {
+    method: "GET",
+    headers: createAuthenticatedRequest(token).headers,
+  });
+
+  // エラー時
+  if (!res.ok) {
+    throw new Error("Todo一覧取得に失敗しました");
+  }
+
+  // レスポンスを返却
+  return await res.json();
+};
+
+

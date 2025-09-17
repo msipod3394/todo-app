@@ -88,16 +88,31 @@ const handleAddTask = async (taskData: TaskData): Promise<void> => {
   }
 };
 
-const handleToggleTask = (id: number): void => {
-  todoStore.toggleTask(id);
+const handleToggleTask = async (id: number): Promise<void> => {
+  try {
+    await todoStore.toggleTask(id);
+  } catch (error) {
+    console.error("Todo完了状態の切り替えに失敗しました:", error);
+  }
 };
 
-const handleDeleteTask = (id: number): void => {
-  todoStore.deleteTask(id);
+const handleDeleteTask = async (id: number): Promise<void> => {
+  try {
+    await todoStore.deleteTask(id);
+  } catch (error) {
+    console.error("Todoの削除に失敗しました:", error);
+  }
 };
 
-const handleUpdateTask = (id: number, updates: TaskUpdate): void => {
-  todoStore.updateTask(id, updates);
+const handleUpdateTask = async (
+  id: number,
+  updates: TaskUpdate
+): Promise<void> => {
+  try {
+    await todoStore.updateTask(id, updates);
+  } catch (error) {
+    console.error("Todoの更新に失敗しました:", error);
+  }
 };
 
 const handleDeleteAllCompleted = (): void => {
@@ -114,8 +129,22 @@ const handleDeleteAllCompleted = (): void => {
 //   }
 // };
 
-// Initialize sample data on mount
-onMounted(() => {
-  todoStore.initializeSampleData();
+// Initialize data on mount
+onMounted(async () => {
+  try {
+    // 認証されている場合はAPIからデータを取得
+    if (authStore.isAuthenticated) {
+      // APIからデータを取得
+      await todoStore.fetchTasks();
+    }
+    // else {
+    //   // 認証されていない場合はサンプルデータを表示
+    //   todoStore.initializeSampleData();
+    // }
+  } catch (error) {
+    console.error("データの初期化に失敗しました:", error);
+    // エラー時はサンプルデータを表示
+    todoStore.initializeSampleData();
+  }
 });
 </script>

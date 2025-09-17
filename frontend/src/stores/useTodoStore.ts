@@ -1,12 +1,12 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useAuthStore } from "./useAuthStore";
-import { createTodo } from "@/lib/api";
+import { createTodo, fetchTodos } from "@/lib/api";
 import { format, isValid, parseISO } from "date-fns";
 
 export interface Task {
   id: number;
-  name: string;
+  title: string;
   deadlineDate: string | null;
   completed: boolean;
   completedAt: Date | null;
@@ -14,7 +14,7 @@ export interface Task {
 }
 
 export interface TaskUpdate {
-  name?: string;
+  title?: string;
   deadlineDate?: string | null;
   completed?: boolean;
 }
@@ -69,7 +69,7 @@ export const useTodoStore = defineStore("todo", () => {
       // ローカル状態を更新
       const newTask: Task = {
         id: response.data.id, // API から返されたID
-        name: response.data.title,
+        title: response.data.title,
         deadlineDate: response.data.deadline_date,
         completed: false,
         completedAt: null,
@@ -83,6 +83,7 @@ export const useTodoStore = defineStore("todo", () => {
     }
   };
 
+  // Todo削除
   const deleteTask = (id: number): void => {
     const index = tasks.value.findIndex((task) => task.id === id);
     if (index > -1) {
@@ -90,10 +91,12 @@ export const useTodoStore = defineStore("todo", () => {
     }
   };
 
+  // Todo完了状態削除
   const deleteAllCompleted = (): void => {
     tasks.value = tasks.value.filter((task) => !task.completed);
   };
 
+  // Todo完了状態切り替え
   const toggleTask = (id: number): void => {
     const task = tasks.value.find((task) => task.id === id);
     if (task) {
@@ -102,6 +105,7 @@ export const useTodoStore = defineStore("todo", () => {
     }
   };
 
+  // Todo更新
   const updateTask = (id: number, updates: TaskUpdate): void => {
     const task = tasks.value.find((task) => task.id === id);
     if (task) {
@@ -109,7 +113,36 @@ export const useTodoStore = defineStore("todo", () => {
     }
   };
 
-  // Initialize with sample data matching the design
+  // Todo一覧取得
+  const fetchTasks = async (): Promise<void> => {
+    // 認証ストア取得
+    const authStore = useAuthStore();
+
+    // 認証が必要な場合
+    if (!authStore.token) {
+      throw new Error("認証が必要です");
+    }
+
+    try {
+      // APIからデータを取得
+      const res = await fetchTodos(authStore.token);
+
+      // APIレスポンスをフロントエンドに合わせて変換
+      tasks.value = res.data.map((todo: any) => ({
+        id: todo.id,
+        title: todo.title,
+        deadlineDate: todo.deadline_date,
+        completed: todo.completed_at !== null,
+        completedAt: todo.completed_at ? new Date(todo.completed_at) : null,
+        createdAt: new Date(todo.created_at),
+      }));
+    } catch (error) {
+      console.error("Todo一覧取得エラー:", error);
+      throw error;
+    }
+  };
+
+  // サンプルデータ初期化
   const initializeSampleData = (): void => {
     const today = new Date();
     const tomorrow = new Date(today);
@@ -118,7 +151,7 @@ export const useTodoStore = defineStore("todo", () => {
     const sampleTasks: Task[] = [
       {
         id: 1,
-        name: "買い物に行く",
+        title: "買い物に行く",
         deadlineDate: today.toISOString().split("T")[0],
         completed: false,
         completedAt: null,
@@ -126,7 +159,7 @@ export const useTodoStore = defineStore("todo", () => {
       },
       {
         id: 2,
-        name: "掃除をする",
+        title: "掃除をする",
         deadlineDate: tomorrow.toISOString().split("T")[0],
         completed: false,
         completedAt: null,
@@ -134,7 +167,7 @@ export const useTodoStore = defineStore("todo", () => {
       },
       {
         id: 3,
-        name: "○○に連絡をする",
+        title: "○○に連絡をする",
         deadlineDate: today.toISOString().split("T")[0],
         completed: true,
         completedAt: new Date(),
@@ -142,7 +175,7 @@ export const useTodoStore = defineStore("todo", () => {
       },
       {
         id: 4,
-        name: "○○に連絡をする",
+        title: "○○に連絡をする",
         deadlineDate: tomorrow.toISOString().split("T")[0],
         completed: true,
         completedAt: new Date(),
@@ -154,7 +187,7 @@ export const useTodoStore = defineStore("todo", () => {
     nextId.value = 5;
   };
 
-  // 日付フォーマット用ヘルパー関数
+  // 日付フォーマット用
   const formatDateForApi = (dateValue: any): string | null => {
     if (!dateValue) return null;
 
@@ -208,6 +241,7 @@ export const useTodoStore = defineStore("todo", () => {
     deleteAllCompleted,
     toggleTask,
     updateTask,
+    fetchTasks,
     initializeSampleData,
   };
 });
