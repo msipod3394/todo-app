@@ -1,11 +1,8 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- App Header -->
     <AppHeader />
-    <!-- Main Content -->
     <div class="pt-16 px-0 flex justify-center">
       <div class="w-[680px]">
-        <!-- Main Card Container -->
         <div
           class="bg-white rounded-lg border border-zinc-200 overflow-hidden"
           style="
@@ -14,20 +11,14 @@
               0px 10px 15px -3px rgba(0, 0, 0, 0.1);
           "
         >
-          <!-- Input Section -->
           <div class="p-6 border-b border-zinc-200">
             <TaskInput @add-task="handleAddTask" />
           </div>
-
-          <!-- Content Section -->
           <div class="p-6 space-y-6">
-            <!-- Progress Section -->
             <ProgressBar
               :completed-count="completedTodos.length"
               :total-count="totalTodos"
             />
-
-            <!-- Task Lists -->
             <TaskList
               :incomplete-tasks="incompleteTodos"
               :completed-tasks="completedTodos"

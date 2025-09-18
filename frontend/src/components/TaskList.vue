@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-6">
-    <!-- Incomplete Tasks Section -->
     <div v-if="incompleteTasks.length > 0" class="space-y-3">
       <div class="flex items-center">
         <h2 class="text-lg text-gray-800">
@@ -22,7 +21,6 @@
       </div>
     </div>
 
-    <!-- No Incomplete Tasks -->
     <div v-else class="text-center py-8 text-gray-500">
       <!-- No tasks at all -->
       <div v-if="totalTasks === 0">
@@ -34,21 +32,18 @@
         <p>タスクを登録しましょう！</p>
       </div>
 
-      <!-- All tasks completed -->
       <div v-else>
-        <CheckCircleIcon class="h-12 w-12 mx-auto mb-2 text-green-500" />
+        <CheckCircleIcon class="h-10 w-10 mx-auto mb-2 text-green-500" />
         <p>すべてのタスクが完了しました！</p>
       </div>
     </div>
 
-    <!-- Completed Tasks Section -->
     <div v-if="completedTasks.length > 0" class="space-y-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <ChevronDownIcon
             class="h-4 w-4 text-gray-600 transition-transform duration-200"
-            :class="{ 'rotate-180': !showCompleted }"
-          />
+            :class="{ 'rotate-180': !showCompleted }" />
           <button
             @click="showCompleted = !showCompleted"
             class="text-lg text-gray-600 hover:text-gray-800 transition-colors"

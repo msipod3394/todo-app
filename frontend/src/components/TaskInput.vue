@@ -56,6 +56,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon, PlusIcon } from "lucide-vue-next";
 import { validateTask } from "@/composables/validation";
+import { format } from "date-fns";
 
 interface TaskData {
   name: string;
@@ -73,14 +74,16 @@ const isCalendarOpen = ref<boolean>(false);
 const isSubmitting = ref<boolean>(false);
 const errors = reactive<Record<string, string>>({});
 
-// Methods
-
 // フォーム送信
 const handleSubmit = async () => {
   try {
+    const formattedDate = selectedDate.value
+      ? format(selectedDate.value, "yyyy-MM-dd")
+      : null;
+
     await emit("add-task", {
       name: taskName.value.trim(), // 空白を削除
-      dueDate: selectedDate.value,
+      dueDate: formattedDate,
     });
 
     // フォームをリセット

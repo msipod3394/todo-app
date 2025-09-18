@@ -9,7 +9,6 @@ import {
   markTodoUncompleted,
   updateTodo as updateTodoApi,
 } from "@/lib/api";
-import { format, isValid, parseISO } from "date-fns";
 
 export interface Todo {
   id: number;
@@ -61,18 +60,15 @@ export const useTodoStore = defineStore("todo", () => {
     }
 
     try {
-      // 日付を文字列形式に変換
-      const formattedDate = formatDateForApi(deadlineDate);
-
       console.log("API送信データ:", {
         title: name.trim(),
-        deadline_date: formattedDate,
+        deadline_date: deadlineDate,
       });
 
       // APIに送信
       const res = await createTodo(authStore.token, {
         title: name.trim(),
-        deadline_date: formattedDate,
+        deadline_date: deadlineDate,
       });
 
       // フロント側のデータを更新
@@ -261,44 +257,6 @@ export const useTodoStore = defineStore("todo", () => {
   //   tasks.value = sampleTasks;
   //   nextId.value = 5;
   // };
-
-  // 日付フォーマット用
-  const formatDateForApi = (dateValue: any): string | null => {
-    if (!dateValue) return null;
-
-    try {
-      let date: Date;
-
-      if (typeof dateValue === "string") {
-        // ISO文字列の場合
-        date = parseISO(dateValue);
-      } else if (dateValue instanceof Date) {
-        // Dateオブジェクトの場合
-        date = dateValue;
-      } else if (
-        dateValue.toString &&
-        typeof dateValue.toString === "function"
-      ) {
-        // DateValueオブジェクトや他のオブジェクトの場合
-        date = new Date(dateValue.toString());
-      } else {
-        // その他の場合はDateコンストラクタで変換を試行
-        date = new Date(dateValue);
-      }
-
-      // 有効な日付かチェック
-      if (!isValid(date)) {
-        console.warn("無効な日付:", dateValue);
-        return null;
-      }
-
-      // YYYY-MM-DD形式で返す
-      return format(date, "yyyy-MM-dd");
-    } catch (error) {
-      console.error("日付変換エラー:", error, dateValue);
-      return null;
-    }
-  };
 
   return {
     // State
