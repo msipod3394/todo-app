@@ -126,14 +126,38 @@ export const markTodoCompleted = async (token: string, id: number) => {
 
 // TODO未完了API
 export const markTodoUncompleted = async (token: string, id: number) => {
-  const response = await fetch(`${API_ENDPOINTS.TODOS}/${id}/uncompleted`, {
+  const res = await fetch(`${API_ENDPOINTS.TODOS}/${id}/uncompleted`, {
     method: "PATCH",
     headers: createAuthenticatedRequest(token).headers,
   });
 
-  if (!response.ok) {
+  if (!res.ok) {
     throw new Error("Todo未完了状態の更新に失敗しました");
   }
 
-  return await response.json();
+  return await res.json();
+};
+
+// TODO編集API
+export const updateTodo = async (
+  token: string,
+  id: number,
+  todoData: {
+    title: string;
+    deadline_date?: string | null;
+  }
+) => {
+  const res = await fetch(`${API_ENDPOINTS.TODOS}/${id}`, {
+    method: "PATCH",
+    headers: createAuthenticatedRequest(token).headers,
+    body: JSON.stringify(todoData),
+  });
+
+  // エラー時
+  if (!res.ok) {
+    throw new Error("Todoの編集に失敗しました");
+  }
+
+  // レスポンスを返却
+  return await res.json();
 };

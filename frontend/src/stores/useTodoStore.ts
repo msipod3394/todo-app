@@ -7,6 +7,7 @@ import {
   fetchTodos,
   markTodoCompleted,
   markTodoUncompleted,
+  updateTodo as updateTodoApi,
 } from "@/lib/api";
 import { format, isValid, parseISO } from "date-fns";
 
@@ -69,19 +70,19 @@ export const useTodoStore = defineStore("todo", () => {
       });
 
       // APIに送信
-      const response = await createTodo(authStore.token, {
+      const res = await createTodo(authStore.token, {
         title: name.trim(),
         deadline_date: formattedDate,
       });
 
-      // ローカル状態を更新
+      // フロント側のデータを更新
       const newTodo: Todo = {
-        id: response.data.id, // API から返されたID
-        title: response.data.title,
-        deadlineDate: response.data.deadline_date,
+        id: res.data.id, // API から返されたID
+        title: res.data.title,
+        deadlineDate: res.data.deadline_date,
         completed: false,
         completedAt: null,
-        createdAt: new Date(response.data.created_at),
+        createdAt: new Date(res.data.created_at),
       };
 
       todos.value.push(newTodo);
@@ -131,10 +132,36 @@ export const useTodoStore = defineStore("todo", () => {
   };
 
   // Todoの内容を更新
-  const updateTodo = (id: number, updates: TodoUpdate): void => {
-    const todo = todos.value.find((todo) => todo.id === id);
-    if (todo) {
-      Object.assign(todo, updates);
+  const updateTodo = async (id: number, updates: TodoUpdate): Promise<void> => {
+    // 認証ストア取得
+    const authStore = useAuthStore();
+
+    if (!authStore.token) {
+      throw new Error("認証が必要です");
+    }
+
+    try {
+      // APIに送信（API関数の型に合わせてパラメータを変換）
+      const apiData = {
+        title: updates.title || "",
+        deadline_date: updates.deadlineDate || null,
+      };
+      const res = await updateTodoApi(authStore.token, id, apiData);
+
+      // フロント側のデータを更新
+      const todoIndex = todos.value.findIndex((todo) => todo.id === id);
+
+      // 更新対象のTodoを更新
+      if (todoIndex !== -1) {
+        todos.value[todoIndex] = {
+          ...todos.value[todoIndex],
+          title: res.data.title,
+          deadlineDate: res.data.deadline_date,
+        };
+      }
+    } catch (error) {
+      console.error("Todo更新エラー:", error);
+      throw error;
     }
   };
 
@@ -182,7 +209,7 @@ export const useTodoStore = defineStore("todo", () => {
       await deleteTodo(authStore.token, id);
       console.log("Todo削除成功:", id);
 
-      // ローカルデータを更新
+      // フロント側のデータを更新
       todos.value = todos.value.filter((todo) => todo.id !== id);
     } catch (error) {
       console.error("Todo削除エラー:", error);

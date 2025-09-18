@@ -101,7 +101,6 @@ class TodoController extends Controller
         }
     }
 
-
     /**
      * Todo一覧取得（完了）
      */
