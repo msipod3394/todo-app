@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\TodoStoreRequest;
+use App\Http\Requests\Api\TodoUpdateRequest;
 use Illuminate\Http\Request;
 use App\Models\Todo;
 use Illuminate\Http\JsonResponse;
@@ -14,14 +16,11 @@ class TodoController extends Controller
     /**
      * Todo登録API
      */
-    public function store(Request $request): JsonResponse
+    public function store(TodoStoreRequest $request): JsonResponse
     {
         try {
-            // バリデーションチェック
-            $validated = $request->validate([
-                'title' => 'required|string|max:100', // タイトルは100文字以内
-                'deadline_date' => 'nullable|date|after_or_equal:today', // 期限は今日以降の日付
-            ]);
+            // バリデーション済みデータを取得
+            $validated = $request->validated();
 
             // 認証ユーザーのIDを追加
             $validated['user_id'] = $request->user()->id;
@@ -235,13 +234,10 @@ class TodoController extends Controller
     /**
      * Todoを更新する
      */
-    public function update(Request $request, int $id): JsonResponse{
+    public function update(TodoUpdateRequest $request, int $id): JsonResponse{
         try{
-            // バリデーション
-            $request->validate([
-                'title' => 'required|string|max:100',
-                'deadline_date' => 'nullable|date|after_or_equal:today',
-            ]);
+            // バリデーション済みデータを取得
+            $validated = $request->validated();
 
             // ユーザーIDを取得
             $userId = $request->user()->id;
@@ -258,8 +254,8 @@ class TodoController extends Controller
 
             // todoを更新
             $todo->update([
-                'title' => $request->title,
-                'deadline_date' => $request->deadline_date,
+                'title' => $validated['title'],
+                'deadline_date' => $validated['deadline_date'],
             ]);
 
             // 更新後のデータを取得
@@ -270,11 +266,6 @@ class TodoController extends Controller
                 'data' => $todo
             ]);
 
-         } catch(\Illuminate\Validation\ValidationException $e){
-            return response()->json([
-                'message' => 'バリデーションエラーが発生しました',
-                'errors' => $e->errors()
-            ], 422);
          } catch(\Exception $e){
             return response()->json([
                 'message' => 'Todoの更新に失敗しました',
