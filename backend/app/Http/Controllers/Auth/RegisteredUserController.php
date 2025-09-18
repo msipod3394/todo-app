@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\UserRegistrationRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -19,18 +20,14 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): JsonResponse
+    public function store(UserRegistrationRequest $request): JsonResponse
     {
-        $request->validate([
-            'name' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'string', 'min:8'],
-        ]);
+        $validated = $request->validated();
 
         $user = User::create([
-            'name' => $request->name ?: $request->email, // nameが空の場合はemailを使用
-            'email' => $request->email,
-            'password' => Hash::make($request->string('password')),
+            'name' => $validated['name'] ?: $validated['email'], // nameが空の場合はemailを使用
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
         ]);
 
         event(new Registered($user));
