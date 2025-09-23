@@ -32,14 +32,14 @@ class TodoUpdateRequest extends FormRequest
      *
      * @return array<string, string>
      */
-    public function messages(): array
-    {
-        return [
-            'title.required' => 'タイトルは必須です。',
-            'title.string' => 'タイトルは文字列で入力してください。',
-            'title.max' => 'タイトルは100文字以内で入力してください。',
-            'deadline_date.date' => '期限は有効な日付で入力してください。',
-            'deadline_date.after_or_equal' => '期限は今日以降の日付で入力してください。',
-        ];
-    }
+    // public function messages(): array
+    // {
+    //     return [
+    //         'title.required' => 'タイトルは必須です。',
+    //         'title.string' => 'タイトルは文字列で入力してください。',
+    //         'title.max' => 'タイトルは100文字以内で入力してください。',
+    //         'deadline_date.date' => '期限は有効な日付で入力してください。',
+    //         'deadline_date.after_or_equal' => '期限は今日以降の日付で入力してください。',
+    //     ];
+    // }
 }

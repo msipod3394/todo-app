@@ -195,6 +195,8 @@ return [
         'email' => 'メールアドレス',
         'password' => 'パスワード',
         'name' => '名前',
+        "title" => "タイトル",
+        "deadline_date" => "期限",
     ],
 
 ];
