@@ -25,7 +25,7 @@ class RegisteredUserController extends Controller
         $validated = $request->validated();
 
         $user = User::create([
-            'name' => $validated['name'] ?: $validated['email'], // nameが空の場合はemailを使用
+            'name' => $validated['name'] ?? $validated['email'], // nameが存在しない場合はemailを使用
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
