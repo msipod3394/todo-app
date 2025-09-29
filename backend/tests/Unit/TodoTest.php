@@ -13,9 +13,9 @@ class TodoTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Todoモデルの基本作成テスト
+     * TODOの作成
      */
-    public function test_todo_can_be_created(): void
+    public function test_Todoを作成できる(): void
     {
         // 準備
         $user = User::factory()->create();
@@ -23,21 +23,21 @@ class TodoTest extends TestCase
         // 実行
         $result = Todo::create([
             'title' => 'テストタスク',
-            'deadline_date' => '2024-12-31',
+            'deadline_date' => '2025-12-31',
             'user_id' => $user->id,
         ]);
 
-        // 検証（Todoモデルが作成されたことを期待）
+        // 検証（Todoが作成されたか）
         $this->assertInstanceOf(Todo::class, $result);
         $this->assertEquals('テストタスク', $result->title);
-        $this->assertEquals('2024-12-31', $result->deadline_date->format('Y-m-d'));
+        $this->assertEquals('2025-12-31', $result->deadline_date->format('Y-m-d'));
         $this->assertEquals($user->id, $result->user_id);
     }
 
     /**
-     * fillableプロパティのテスト
+     * 一括代入で更新を許可したプロパティだけが更新される（fillableプロパティ）
      */
-    public function test_todo_fillable_attributes(): void
+    public function test_一括代入で更新を許可したプロパティだけが更新される(): void
     {
         // 準備
         $todo = new Todo();
@@ -51,9 +51,9 @@ class TodoTest extends TestCase
     }
 
     /**
-     * castsプロパティのテスト
+     * 日付が適切なフォーマットで保存される
      */
-    public function test_todo_casts_attributes(): void
+    public function test_日付が適切なフォーマットで保存される(): void
     {
         // 準備
         $todo = new Todo();
@@ -69,9 +69,9 @@ class TodoTest extends TestCase
     }
 
     /**
-     * Userとのリレーションのテスト
+     * Userとリレーションされているか
      */
-    public function test_todo_belongs_to_user(): void
+    public function test_Userとリレーションされているか(): void
     {
         // 準備
         $user = User::factory()->create();
@@ -80,15 +80,15 @@ class TodoTest extends TestCase
         // 実行
         $result = $todo->user;
 
-        // 検証（Userとのリレーションがあることを期待）
+        // 検証（Userとリレーションがあることを期待）
         $this->assertInstanceOf(User::class, $result);
         $this->assertEquals($user->id, $result->id);
     }
 
     /**
-     * 完了状態のテスト
+     * 完了で登録されるか
      */
-    public function test_todo_completion(): void
+    public function test_完了で登録されるか(): void
     {
         // 準備
         $user = User::factory()->create();
@@ -114,9 +114,9 @@ class TodoTest extends TestCase
     }
 
     /**
-     * バリデーションのテスト（モデルレベル）
+     * バリデーションがされているか
      */
-    public function test_todo_requires_title(): void
+    public function test_バリデーションがされているか(): void
     {
         // 準備
         $user = User::factory()->create();
