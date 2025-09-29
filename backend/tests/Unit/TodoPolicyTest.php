@@ -23,9 +23,24 @@ class TodoPolicyTest extends TestCase
     }
 
     /**
-     * ユーザーが自分のTodoを閲覧できることをテスト
+     * 認証済みユーザーがTodoを作成できる
      */
-    public function test_user_can_view_own_todo(): void
+    public function test_認証済みユーザーがTodoを作成できる(): void
+    {
+        // 準備
+        $user = User::factory()->create();
+
+        // 実行
+        $result = $this->policy->create($user);
+
+        // 検証（trueになることを確認）
+        $this->assertTrue($result);
+    }
+
+    /**
+     * ユーザーが自分のTodoを閲覧できる
+     */
+    public function test_ユーザーが自分のTodoを閲覧できる(): void
     {
         // 準備
         $user = User::factory()->create();
@@ -39,9 +54,9 @@ class TodoPolicyTest extends TestCase
     }
 
     /**
-     * ユーザーが他人のTodoを閲覧できないことをテスト
+     * ユーザーが他人のTodoを閲覧できない
      */
-    public function test_user_cannot_view_other_users_todo(): void
+    public function test_ユーザーが他人のTodoを閲覧できない(): void
     {
         // 準備
         $user1 = User::factory()->create();
@@ -56,9 +71,9 @@ class TodoPolicyTest extends TestCase
     }
 
     /**
-     * ユーザーが自分のTodoを更新できることをテスト
+     * ユーザーが自分のTodoを更新できる
      */
-    public function test_user_can_update_own_todo(): void
+    public function test_ユーザーが自分のTodoを更新できる(): void
     {
         // 準備
         $user = User::factory()->create();
@@ -72,9 +87,9 @@ class TodoPolicyTest extends TestCase
     }
 
     /**
-     * ユーザーが他人のTodoを更新できないことをテスト
+     * ユーザーが他人のTodoを更新できない
      */
-    public function test_user_cannot_update_other_users_todo(): void
+    public function test_ユーザーが他人のTodoを更新できない(): void
     {
         // 準備
         $user1 = User::factory()->create();
@@ -89,9 +104,9 @@ class TodoPolicyTest extends TestCase
     }
 
     /**
-     * ユーザーが自分のTodoを削除できることをテスト
+     * ユーザーが自分のTodoを削除できる
      */
-    public function test_user_can_delete_own_todo(): void
+    public function test_ユーザーが自分のTodoを削除できる(): void
     {
         // 準備
         $user = User::factory()->create();
@@ -105,9 +120,9 @@ class TodoPolicyTest extends TestCase
     }
 
     /**
-     * ユーザーが他人のTodoを削除できないことをテスト
+     * ユーザーが他人のTodoを削除できない
      */
-    public function test_user_cannot_delete_other_users_todo(): void
+    public function test_ユーザーが他人のTodoを削除できない(): void
     {
         // 準備
         $user1 = User::factory()->create();
@@ -119,20 +134,5 @@ class TodoPolicyTest extends TestCase
 
         // 検証（falseになることを確認）
         $this->assertFalse($result);
-    }
-
-    /**
-     * 認証済みユーザーがTodoを作成できることをテスト
-     */
-    public function test_authenticated_user_can_create_todo(): void
-    {
-        // 準備
-        $user = User::factory()->create();
-
-        // 実行
-        $result = $this->policy->create($user);
-
-        // 検証（trueになることを確認）
-        $this->assertTrue($result);
     }
 }
