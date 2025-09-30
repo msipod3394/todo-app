@@ -11,8 +11,7 @@ class AuthApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
-    public function ユーザー登録が成功する()
+    public function test_ユーザー登録が成功する()
     {
         $response = $this->postJson('/api/signup', [
             'email' => 'test@example.com',
@@ -32,8 +31,7 @@ class AuthApiTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function メール形式が間違っている場合はエラー()
+    public function test_メール形式が間違っている場合はエラー()
     {
         $response = $this->postJson('/api/signup', [
             'email' => 'invalid-email',
@@ -44,8 +42,7 @@ class AuthApiTest extends TestCase
                 ->assertJsonValidationErrors(['email']);
     }
 
-    /** @test */
-    public function パスワードが短い場合はエラー()
+    public function test_パスワードが短い場合はエラー()
     {
         $response = $this->postJson('/api/signup', [
             'email' => 'test@example.com',
@@ -56,8 +53,7 @@ class AuthApiTest extends TestCase
                 ->assertJsonValidationErrors(['password']);
     }
 
-    /** @test */
-    public function 重複メールアドレスの場合はエラー()
+    public function test_重複メールアドレスの場合はエラー()
     {
         // 事前にユーザーを作成
         User::create([
@@ -75,8 +71,7 @@ class AuthApiTest extends TestCase
                 ->assertJsonValidationErrors(['email']);
     }
 
-    /** @test */
-    public function ログインが成功する()
+    public function test_ログインが成功する()
     {
         // 事前にユーザーを作成
         $user = User::create([
@@ -98,8 +93,7 @@ class AuthApiTest extends TestCase
                 ]);
     }
 
-    /** @test */
-    public function 存在しないメールアドレスでログイン失敗()
+    public function test_存在しないメールアドレスでログイン失敗()
     {
         $response = $this->postJson('/api/signin', [
             'email' => 'nonexistent@example.com',
@@ -112,8 +106,7 @@ class AuthApiTest extends TestCase
                 ]);
     }
 
-    /** @test */
-    public function 間違ったパスワードでログイン失敗()
+    public function test_間違ったパスワードでログイン失敗()
     {
         // 事前にユーザーを作成
         User::create([
@@ -133,8 +126,7 @@ class AuthApiTest extends TestCase
                 ]);
     }
 
-    /** @test */
-    public function ログアウトが成功する()
+    public function test_ログアウトが成功する()
     {
         // 事前にユーザーを作成してログイン
         $user = User::create([
@@ -142,7 +134,7 @@ class AuthApiTest extends TestCase
             'email' => 'logout@example.com',
             'password' => bcrypt('password123')
         ]);
-        
+
         $token = $user->createToken('test_token')->plainTextToken;
 
         $response = $this->withHeaders([
@@ -156,16 +148,14 @@ class AuthApiTest extends TestCase
                 ]);
     }
 
-    /** @test */
-    public function 認証なしでは保護されたルートにアクセスできない()
+    public function test_認証なしでは保護されたルートにアクセスできない()
     {
         $response = $this->getJson('/api/me');
 
         $response->assertStatus(401);
     }
 
-    /** @test */
-    public function 無効なトークンでは保護されたルートにアクセスできない()
+    public function test_無効なトークンでは保護されたルートにアクセスできない()
     {
         $response = $this->withHeaders([
             'Authorization' => 'Bearer invalid-token',
@@ -175,8 +165,7 @@ class AuthApiTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
-    public function 有効なトークンでは保護されたルートにアクセスできる()
+    public function test_有効なトークンでは保護されたルートにアクセスできる()
     {
         // ユーザー作成とトークン発行
         $user = User::create([
@@ -184,7 +173,7 @@ class AuthApiTest extends TestCase
             'email' => 'protected@example.com',
             'password' => bcrypt('password123')
         ]);
-        
+
         $token = $user->createToken('test_token')->plainTextToken;
 
         $response = $this->withHeaders([
