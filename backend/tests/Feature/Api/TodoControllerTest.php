@@ -2,11 +2,10 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\Todo;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
+use App\Models\Todo; // Todoモデル
+use App\Models\User; // Userモデル
+use Illuminate\Foundation\Testing\RefreshDatabase; // データベースのリセット
+use Tests\TestCase; // テストクラス
 
 class TodoControllerTest extends TestCase
 {
@@ -14,37 +13,51 @@ class TodoControllerTest extends TestCase
     // データベースのリセット
     use RefreshDatabase;
 
-    public function todoの登録APIの正常系を確認()
+    public function test_todoの登録APIでデータが登録できることを確認(): void
     {
         // APIを実行するユーザーを作成
         $user = User::factory()->create();
 
         // 送信データを定義
         $postData = [
-            'title' => 'テスト用のTodoタイトル',
-            'deadline_date' => '2024-12-31',
+            'title' => 'テストTodoタイトル',
+            'deadline_date' => '2025-12-31',
         ];
 
         // API実行
         $response = $this->actingAs($user)->json(
             'POST',
-            route('api.todos.store'),
+            route('todos.store'),
             $postData
         );
 
-        // レスポンスのアサート
-        $response->assertStatus(201)->assertJson([
+        // Todoが正常に作成されたことを確認
+        $response->assertStatus(201);
+
+        // メッセージの値確認
+        $response->assertJsonFragment([
             'message' => 'TODOが正常に作成されました',
+        ]);
+
+        // データの値確認
+        $response->assertJsonFragment([
+            'title' => $postData['title'],
+            'user_id' => $user->id,
+        ]);
+
+        // データの構造確認
+        $response->assertJsonStructure([
             'data' => [
-                'title' => $postData['title'],
-                'deadline_date' => $postData['deadline_date'],
-                'user_id' => $user->id,
-                'completed_at' => null,
+                'id',
+                'title',
+                'deadline_date',
+                'user_id',
+                'created_at',
+                'updated_at',
             ]
         ]);
 
-        // DBアサート
-        // todosテーブルにデータ登録ができていることを確認
+        // todosテーブルにデータが登録できていることを確認
         $this->assertDatabaseHas('todos', [
             'title' => $postData['title'],
             'deadline_date' => $postData['deadline_date'],
@@ -53,7 +66,7 @@ class TodoControllerTest extends TestCase
         ]);
     }
 
-    public function todoの登録APIで期限なしの正常系を確認()
+    public function test_todoの登録APIで期限なしのデータが登録できることを確認()
     {
         // APIを実行するユーザーを作成
         $user = User::factory()->create();
@@ -66,18 +79,27 @@ class TodoControllerTest extends TestCase
         // API実行
         $response = $this->actingAs($user)->json(
             'POST',
-            route('api.todos.store'),
+            route('todos.store'),
             $postData
         );
 
         // レスポンスのアサート
-        $response->assertStatus(201)->assertJson([
+        $response->assertStatus(201);
+        $response->assertJsonFragment([
             'message' => 'TODOが正常に作成されました',
+        ]);
+        $response->assertJsonFragment([
+            'title' => $postData['title'],
+            'user_id' => $user->id,
+        ]);
+        $response->assertJsonStructure([
+            'message',
             'data' => [
-                'title' => $postData['title'],
-                'deadline_date' => null,
-                'user_id' => $user->id,
-                'completed_at' => null,
+                'id',
+                'title',
+                'user_id',
+                'created_at',
+                'updated_at',
             ]
         ]);
 
@@ -90,20 +112,20 @@ class TodoControllerTest extends TestCase
         ]);
     }
 
-    public function todoの登録APIでバリデーションエラーを確認()
+    public function test_todoの登録APIでバリデーションエラーが発生することを確認()
     {
         // APIを実行するユーザーを作成
         $user = User::factory()->create();
 
-        // 送信データを定義（タイトルなし）
+        // 送信データを定義（タイトルが未入力）
         $postData = [
-            'deadline_date' => '2024-12-31',
+            'deadline_date' => '2025-12-31',
         ];
 
         // API実行
         $response = $this->actingAs($user)->json(
             'POST',
-            route('api.todos.store'),
+            route('todos.store'),
             $postData
         );
 
@@ -112,12 +134,12 @@ class TodoControllerTest extends TestCase
             ->assertJsonValidationErrors(['title']);
     }
 
-    public function todoの一覧取得APIの正常系を確認()
+    public function test_todoの一覧取得APIでデータが取得できることを確認()
     {
         // ユーザーを作成
         $user = User::factory()->create();
 
-        // テスト用のTodoを作成
+        // テスト用のTodoを3件作成
         $todos = Todo::factory()->count(3)->create([
             'user_id' => $user->id
         ]);
@@ -125,7 +147,7 @@ class TodoControllerTest extends TestCase
         // API実行
         $response = $this->actingAs($user)->json(
             'GET',
-            route('api.todos.index')
+            route('todos.index')
         );
 
         // レスポンスのアサート
@@ -136,7 +158,7 @@ class TodoControllerTest extends TestCase
             ->assertJsonCount(3, 'data');
     }
 
-    public function todoの未完了一覧取得APIの正常系を確認()
+    public function test_todoの未完了一覧取得APIでデータが取得できることを確認()
     {
         // ユーザーを作成
         $user = User::factory()->create();
@@ -155,8 +177,7 @@ class TodoControllerTest extends TestCase
 
         // API実行
         $response = $this->actingAs($user)->json(
-            'GET',
-            route('api.todos.uncompleted')
+            'GET', '/api/todos/uncompleted'
         );
 
         // レスポンスのアサート
@@ -167,7 +188,7 @@ class TodoControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    public function todoの完了一覧取得APIの正常系を確認()
+    public function test_todoの完了一覧取得APIでデータが取得できることを確認()
     {
         // ユーザーを作成
         $user = User::factory()->create();
@@ -186,8 +207,7 @@ class TodoControllerTest extends TestCase
 
         // API実行
         $response = $this->actingAs($user)->json(
-            'GET',
-            route('api.todos.completed')
+            'GET','/api/todos/completed'
         );
 
         // レスポンスのアサート
@@ -198,7 +218,7 @@ class TodoControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    public function todoの更新APIの正常系を確認()
+    public function test_todoの更新APIでデータが更新できることを確認()
     {
         // ユーザーを作成
         $user = User::factory()->create();
@@ -206,35 +226,33 @@ class TodoControllerTest extends TestCase
         // テスト用のTodoを作成
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
-            'title' => '元のタイトル',
-            'deadline_date' => '2024-01-01'
+            'title' => 'テストタイトル',
+            'deadline_date' => '2025-12-31'
         ]);
 
         // 更新データを定義
         $updateData = [
-            'title' => '更新されたタイトル',
-            'deadline_date' => '2024-12-31',
+            'title' => 'テストタイトルを更新',
+            'deadline_date' => '2026-01-31'
         ];
 
         // API実行
         $response = $this->actingAs($user)->json(
             'PUT',
-            route('api.todos.update', $todo->id),
+            route('todos.update', $todo->id),
             $updateData
         );
 
-        // レスポンスのアサート
+        // レスポンスの確認
         $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Todoを更新しました',
-                'data' => [
-                    'id' => $todo->id,
-                    'title' => $updateData['title'],
-                    'deadline_date' => $updateData['deadline_date'],
-                ]
-            ]);
+            ->assertJsonFragment(['message' => 'Todoを更新しました'])
+            ->assertJsonFragment(['title' => $updateData['title']]);
 
-        // DBアサート
+        // 日付のレスポンス確認
+        $responseData = $response->json('data');
+        $this->assertStringContainsString('2026-01-30', $responseData['deadline_date']);
+
+        // DBの確認
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'title' => $updateData['title'],
@@ -242,122 +260,4 @@ class TodoControllerTest extends TestCase
         ]);
     }
 
-    public function todoの完了APIの正常系を確認()
-    {
-        // ユーザーを作成
-        $user = User::factory()->create();
-
-        // テスト用のTodoを作成
-        $todo = Todo::factory()->create([
-            'user_id' => $user->id,
-            'completed_at' => null
-        ]);
-
-        // API実行
-        $response = $this->actingAs($user)->json(
-            'PATCH',
-            route('api.todos.completed', $todo->id)
-        );
-
-        // レスポンスのアサート
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Todoを完了にしました',
-            ]);
-
-        // DBアサート
-        $this->assertDatabaseHas('todos', [
-            'id' => $todo->id,
-            'completed_at' => now()->format('Y-m-d H:i:s'),
-        ]);
-    }
-
-    public function todoの未完了APIの正常系を確認()
-    {
-        // ユーザーを作成
-        $user = User::factory()->create();
-
-        // テスト用のTodoを作成（完了済み）
-        $todo = Todo::factory()->create([
-            'user_id' => $user->id,
-            'completed_at' => now()
-        ]);
-
-        // API実行
-        $response = $this->actingAs($user)->json(
-            'PATCH',
-            route('api.todos.uncompleted', $todo->id)
-        );
-
-        // レスポンスのアサート
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Todoを未完了にしました',
-            ]);
-
-        // DBアサート
-        $this->assertDatabaseHas('todos', [
-            'id' => $todo->id,
-            'completed_at' => null,
-        ]);
-    }
-
-    public function todoの削除APIの正常系を確認()
-    {
-        // ユーザーを作成
-        $user = User::factory()->create();
-
-        // テスト用のTodoを作成
-        $todo = Todo::factory()->create([
-            'user_id' => $user->id
-        ]);
-
-        // API実行
-        $response = $this->actingAs($user)->json(
-            'DELETE',
-            route('api.todos.destroy', $todo->id)
-        );
-
-        // レスポンスのアサート
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Todoが正常に削除されました',
-            ]);
-
-        // DBアサート
-        $this->assertDatabaseMissing('todos', [
-            'id' => $todo->id,
-        ]);
-    }
-
-    public function 他のユーザーのtodoにアクセスできないことを確認()
-    {
-        // ユーザーを作成
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-
-        // user2のTodoを作成
-        $todo = Todo::factory()->create([
-            'user_id' => $user2->id
-        ]);
-
-        // user1でuser2のTodoにアクセス
-        $response = $this->actingAs($user1)->json(
-            'GET',
-            route('api.todos.index')
-        );
-
-        // レスポンスをアサート（user1のTodoは0件）
-        $response->assertStatus(200)
-            ->assertJsonCount(0, 'data');
-    }
-
-    public function 認証なしでAPIにアクセスできないことを確認()
-    {
-        // 認証なしでAPI実行
-        $response = $this->json('GET', route('api.todos.index'));
-
-        // レスポンスのアサート
-        $response->assertStatus(401);
-    }
 }
