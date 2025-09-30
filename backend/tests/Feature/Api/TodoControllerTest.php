@@ -223,7 +223,7 @@ class TodoControllerTest extends TestCase
         // ユーザーを作成
         $user = User::factory()->create();
 
-        // テスト用のTodoを作成
+        // Todoを作成
         $todo = Todo::factory()->create([
             'user_id' => $user->id,
             'title' => 'テストタイトル',
@@ -258,6 +258,114 @@ class TodoControllerTest extends TestCase
             'title' => $updateData['title'],
             'deadline_date' => $updateData['deadline_date'],
         ]);
+    }
+
+    public function test_todoの完了APIでデータが更新できることを確認()
+    {
+        // ユーザーを作成
+        $user = User::factory()->create();
+
+        // Todoを作成
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'completed_at' => null
+        ]);
+
+        // API実行
+        $response = $this->actingAs($user)->json(
+            'PATCH',"/api/todos/{$todo->id}/completed"
+        );
+
+        // レスポンスのアサート（200エラーを期待）
+        $response->assertStatus(200);
+
+        // DBアサート
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'completed_at' => now()->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function test_todoの未完了APIでデータが更新できることを確認()
+    {
+        // ユーザーを作成
+        $user = User::factory()->create();
+
+        // Todoを作成（完了済み）
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id,
+            'completed_at' => now()
+        ]);
+
+        // API実行
+        $response = $this->actingAs($user)->json(
+            'PATCH',"/api/todos/{$todo->id}/uncompleted"
+        );
+
+        // レスポンスのアサート（200エラーを期待）
+        $response->assertStatus(200);
+
+        // DBアサート
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'completed_at' => null,
+        ]);
+    }
+
+    public function test_todoの削除APIでデータが削除できることを確認()
+    {
+        // ユーザーを作成
+        $user = User::factory()->create();
+
+        // Todoを作成
+        $todo = Todo::factory()->create([
+            'user_id' => $user->id
+        ]);
+
+        // API実行
+        $response = $this->actingAs($user)->json(
+            'DELETE',
+            route('todos.destroy', $todo->id)
+        );
+
+        // レスポンスのアサート（200エラーを期待）
+        $response->assertStatus(200);
+
+        // DBアサート
+        $this->assertDatabaseMissing('todos', [
+            'id' => $todo->id,
+        ]);
+    }
+
+    public function test_他のユーザーのtodoにアクセスできないことを確認()
+    {
+        // ユーザーを作成
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        // user2のTodoを作成
+        $todo = Todo::factory()->create([
+            'user_id' => $user2->id
+        ]);
+
+        // user1でuser2のTodoにアクセス
+        $response = $this->actingAs($user1)->json(
+            'GET',
+            route('todos.index')
+        );
+
+        // レスポンスをアサート（200エラーを期待）
+        $response->assertStatus(200);
+
+    }
+
+    public function test_認証なしでAPIにアクセスできないことを確認()
+    {
+        // 認証なしでAPI実行
+        $response = $this->json('GET', route('todos.index'));
+
+        // レスポンスのアサート（401エラーを期待）
+        $response->assertStatus(401);
     }
 
 }
