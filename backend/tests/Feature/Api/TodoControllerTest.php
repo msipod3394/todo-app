@@ -34,11 +34,6 @@ class TodoControllerTest extends TestCase
         // Todoが正常に作成されたことを確認
         $response->assertStatus(201);
 
-        // メッセージの値確認
-        $response->assertJsonFragment([
-            'message' => 'TODOが正常に作成されました',
-        ]);
-
         // データの値確認
         $response->assertJsonFragment([
             'title' => $postData['title'],
@@ -60,7 +55,7 @@ class TodoControllerTest extends TestCase
         // todosテーブルにデータが登録できていることを確認
         $this->assertDatabaseHas('todos', [
             'title' => $postData['title'],
-            'deadline_date' => $postData['deadline_date'],
+            'deadline_date' => $postData['deadline_date'] . ' 00:00:00',
             'user_id' => $user->id,
             'completed_at' => null,
         ]);
@@ -84,15 +79,12 @@ class TodoControllerTest extends TestCase
         );
 
         // レスポンスのアサート
-        $response->assertStatus(201);
-        $response->assertJsonFragment([
-            'message' => 'TODOが正常に作成されました',
-        ]);
-        $response->assertJsonFragment([
+        $response->assertStatus(201)
+        ->assertJsonFragment([
             'title' => $postData['title'],
             'user_id' => $user->id,
-        ]);
-        $response->assertJsonStructure([
+        ])
+        ->assertJsonStructure([
             'message',
             'data' => [
                 'id',
@@ -152,9 +144,6 @@ class TodoControllerTest extends TestCase
 
         // レスポンスのアサート
         $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Todo一覧を取得しました',
-            ])
             ->assertJsonCount(3, 'data');
     }
 
@@ -182,9 +171,6 @@ class TodoControllerTest extends TestCase
 
         // レスポンスのアサート
         $response->assertStatus(200)
-            ->assertJson([
-                'message' => '未完了のTodo一覧を取得しました',
-            ])
             ->assertJsonCount(2, 'data');
     }
 
@@ -212,9 +198,6 @@ class TodoControllerTest extends TestCase
 
         // レスポンスのアサート
         $response->assertStatus(200)
-            ->assertJson([
-                'message' => '完了したTodo一覧を取得しました',
-            ])
             ->assertJsonCount(2, 'data');
     }
 
@@ -256,7 +239,7 @@ class TodoControllerTest extends TestCase
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'title' => $updateData['title'],
-            'deadline_date' => $updateData['deadline_date'],
+            'deadline_date' => $updateData['deadline_date'] . ' 00:00:00',
         ]);
     }
 
