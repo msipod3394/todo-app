@@ -24,13 +24,14 @@ class AuthControllerTest extends TestCase
         // ユーザー登録API実行
         $response = $this->json('POST', '/api/signup', $userData);
 
-        // レスポンス
-        $response->assertStatus(201)
-            ->assertJsonFragment([
+        // レスポンスをアサート
+        $response->assertStatus(201)->assertJson([
+            'user' => [
                 'email' => $userData['email'],
-            ]);
+            ],
+        ]);
 
-        // データが登録されているか
+        // DB確認（データの存在とリレーションの確認）
         $this->assertDatabaseHas('users', [
             'email' => $userData['email'],
         ]);
@@ -47,7 +48,7 @@ class AuthControllerTest extends TestCase
         // ユーザー登録API実行
         $response = $this->json('POST', '/api/signup', $invalidData);
 
-        // バリデーションエラーが発生するか
+        // レスポンスをアサート
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email', 'password']);
     }
@@ -72,20 +73,18 @@ class AuthControllerTest extends TestCase
         // サインインAPI実行
         $response = $this->json('POST', '/api/signin', $signinData);
 
-        // レスポンス
-        $response->assertStatus(200);
-
-        // レスポンス内容を確認
-        $responseData = $response->json();
-        $this->assertArrayHasKey('user', $responseData); // ユーザー情報が存在するか
-        $this->assertArrayHasKey('token', $responseData); // トークンが存在するか
-
-        // DBのユーザー情報と一致するか
-        $this->assertEquals($user->id, $responseData['user']['id']);
-        $this->assertEquals($user->name, $responseData['user']['name']);
-        $this->assertEquals($user->email, $responseData['user']['email']);
+        // レスポンスをアサート
+        $response->assertStatus(200)->assertJson([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+        ]);
 
         // トークンが生成されているか
+        $responseData = $response->json();
+        $this->assertArrayHasKey('token', $responseData);
         $this->assertNotEmpty($responseData['token']);
     }
 
@@ -105,7 +104,7 @@ class AuthControllerTest extends TestCase
         // サインインAPI実行
         $response = $this->json('POST', '/api/signin', $invalidSigninData);
 
-        // 認証エラーを期待
+        // レスポンスをアサート
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email']);
     }
@@ -121,7 +120,7 @@ class AuthControllerTest extends TestCase
         // サインインAPI実行
         $response = $this->json('POST', '/api/signin', $notExistentSigninData);
 
-        // 認証エラーを期待
+        // レスポンスをアサート
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email']);
     }
@@ -137,7 +136,7 @@ class AuthControllerTest extends TestCase
         // サインインAPI実行
         $response = $this->json('POST', '/api/signin', $invalidData);
 
-        // バリデーションエラーが発生するか
+        // レスポンスをアサート
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email', 'password']);
     }
@@ -145,7 +144,7 @@ class AuthControllerTest extends TestCase
     /**
      * サインアウトAPI（POST /api/signout）
      */
-    public function test_サインアウトAPIで正常にログアウトできるか(): void
+    public function test_サインアウトAPIで正常にサインアウトできるか(): void
     {
         // ユーザーを作成してログイン
         $user = User::factory()->create();
@@ -156,15 +155,14 @@ class AuthControllerTest extends TestCase
             'Authorization' => 'Bearer ' . $token,
         ])->json('POST', '/api/signout');
 
-        // レスポンス
+        // レスポンスをアサート
         $response->assertStatus(200);
 
-        // トークンが無効になっているか
+        // DB確認（トークンが削除されていることを確認）
         $this->assertDatabaseMissing('personal_access_tokens', [
             'tokenable_id' => $user->id,
             'name' => 'test-token',
         ]);
     }
-
 
 }
