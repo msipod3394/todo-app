@@ -2,13 +2,13 @@
   <header class="bg-slate-900 text-white">
     <div class="px-10 py-4 flex justify-end">
       <div class="flex items-center gap-4">
-        <!-- User Info -->
+        <!-- ユーザー情報 -->
         <div class="flex items-center gap-1">
           <span class="text-sm font-light">{{ authStore.userName }}</span>
           <span class="text-sm font-light">さん</span>
         </div>
 
-        <!-- Logout Button -->
+        <!-- ログアウトボタン -->
         <Button
           variant="outline"
           size="sm"
@@ -32,7 +32,7 @@ const authStore = useAuthStore();
 
 const handleLogout = async (): Promise<void> => {
   const result = await authStore.logout();
-  
+
   if (result.success) {
     // ログアウト成功時はログインページにリダイレクト
     router.push("/login");

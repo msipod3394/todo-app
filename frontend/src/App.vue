@@ -1,6 +1,4 @@
-<script setup lang="ts">
-// ルータービューでルーティングを有効化
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <router-view />
