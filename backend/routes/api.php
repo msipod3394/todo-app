@@ -18,11 +18,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // 認証ユーザー情報取得
     Route::get('/me', [\App\Http\Controllers\UserController::class, 'me']);
 
-    // ★カスタムルートを先に定義
+    // ★カスタムルートを先に定義（apiResourceより前に定義する必要がある）
     // 未完了のTodo一覧取得
     Route::get('/todos/uncompleted', [\App\Http\Controllers\TodoController::class, 'uncompleted']);
     // 完了のTodo一覧取得
     Route::get('/todos/completed', [\App\Http\Controllers\TodoController::class, 'completed']);
+    // 完了したTodoを一括削除
+    Route::delete('/todos/completed', [\App\Http\Controllers\TodoController::class, 'deleteAllCompleted']);
 
     // Todoのリソースルート
     Route::apiResource('todos', \App\Http\Controllers\TodoController::class)

@@ -8,6 +8,7 @@ import {
   markTodoCompleted,
   markTodoUncompleted,
   updateTodo as updateTodoApi,
+  deleteAllCompletedTodos,
 } from "@/lib/api";
 
 export interface Todo {
@@ -89,8 +90,36 @@ export const useTodoStore = defineStore("todo", () => {
   };
 
   // Todo完了状態削除
-  const deleteAllCompleted = (): void => {
-    todos.value = todos.value.filter((todo) => !todo.completed);
+  const deleteAllCompleted = async (): Promise<void> => {
+    const authStore = useAuthStore();
+
+    if (!authStore.token) {
+      throw new Error("認証が必要です");
+    }
+
+    try {
+      console.log("完了したTodo一括削除を開始...");
+      console.log(
+        "削除前の完了Todo数:",
+        todos.value.filter((todo) => todo.completed).length
+      );
+
+      // APIに送信
+      const response = await deleteAllCompletedTodos(authStore.token);
+      console.log("APIレスポンス:", response);
+
+      // フロント側のデータを更新
+      todos.value = todos.value.filter((todo) => !todo.completed);
+
+      console.log(
+        "削除後の完了Todo数:",
+        todos.value.filter((todo) => todo.completed).length
+      );
+      console.log("完了したTodo一括削除が完了しました");
+    } catch (error) {
+      console.error("完了したTodo一括削除エラー:", error);
+      throw error;
+    }
   };
 
   // TODOの完了・未完了状態を切り替え
@@ -149,11 +178,11 @@ export const useTodoStore = defineStore("todo", () => {
 
       // 更新対象のTodoを更新
       if (todoIndex !== -1) {
-        todos.value[todoIndex] = {
-          ...todos.value[todoIndex],
+        // リアクティブな更新のためにObject.assignを使用
+        Object.assign(todos.value[todoIndex], {
           title: res.data.title,
           deadlineDate: res.data.deadline_date,
-        };
+        });
       }
     } catch (error) {
       console.error("Todo更新エラー:", error);

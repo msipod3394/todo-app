@@ -180,4 +180,31 @@ class TodoController extends Controller
         ]);
     }
 
+    /**
+     * 完了したTodoを一括削除する
+     */
+    public function deleteAllCompleted(Request $request): JsonResponse
+    {
+        // ユーザーIDを取得
+        $userId = $request->user()->id;
+
+        // 完了したTodoを取得
+        $completedTodos = Todo::where('user_id', $userId)
+            ->whereNotNull('completed_at')
+            ->get();
+
+        // 削除するTodoの数を取得
+        $deletedCount = $completedTodos->count();
+
+        // 完了したTodoを一括削除
+        Todo::where('user_id', $userId)
+            ->whereNotNull('completed_at')
+            ->delete();
+
+        return response()->json([
+            'message' => "完了したTodoを{$deletedCount}件削除しました",
+            'deleted_count' => $deletedCount
+        ]);
+    }
+
 }

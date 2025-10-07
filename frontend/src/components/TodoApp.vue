@@ -107,8 +107,12 @@ const handleUpdateTodo = async (
   }
 };
 
-const handleDeleteAllCompleted = (): void => {
-  todoStore.deleteAllCompleted();
+const handleDeleteAllCompleted = async (): Promise<void> => {
+  try {
+    await todoStore.deleteAllCompleted();
+  } catch (error) {
+    console.error("完了したTodoの一括削除に失敗しました:", error);
+  }
 };
 
 // Initialize data on mount

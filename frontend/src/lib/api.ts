@@ -147,17 +147,49 @@ export const updateTodo = async (
     deadline_date?: string | null;
   }
 ) => {
+  console.log("Todo更新API呼び出し:", { id, todoData });
+
   const res = await fetch(`${API_ENDPOINTS.TODOS}/${id}`, {
     method: "PATCH",
     headers: createAuthenticatedRequest(token).headers,
     body: JSON.stringify(todoData),
   });
 
+  console.log("Todo更新APIレスポンス:", { status: res.status, ok: res.ok });
+
   // エラー時
   if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Todo更新APIエラー:", errorText);
     throw new Error("Todoの編集に失敗しました");
   }
 
   // レスポンスを返却
   return await res.json();
+};
+
+// 完了したTodo一括削除API
+export const deleteAllCompletedTodos = async (token: string) => {
+  console.log("API呼び出し: DELETE /api/todos/completed");
+  console.log("認証トークン:", token ? "あり" : "なし");
+
+  const res = await fetch(`${API_ENDPOINTS.TODOS}/completed`, {
+    method: "DELETE",
+    headers: createAuthenticatedRequest(token).headers,
+  });
+
+  console.log("APIレスポンスステータス:", res.status);
+  console.log("APIレスポンスOK:", res.ok);
+
+  // エラー時
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("APIエラーレスポンス:", errorText);
+    throw new Error("完了したTodoの一括削除に失敗しました");
+  }
+
+  // レスポンスを返却
+  const responseData = await res.json();
+  console.log("APIレスポンスデータ:", responseData);
+  return responseData;
 };

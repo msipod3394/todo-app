@@ -23,7 +23,7 @@ class TodoUpdateRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:100',
-            'deadline_date' => 'nullable|date|after_or_equal:today',
+            'deadline_date' => 'nullable|date',
         ];
     }
 
