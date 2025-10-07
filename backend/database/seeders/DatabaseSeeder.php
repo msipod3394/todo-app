@@ -28,13 +28,29 @@ class DatabaseSeeder extends Seeder
             'password' => 'password123',
         ]);
 
-        // 残りの3つのユーザーを作成
-        $users = User::factory()
-            ->count(3)
-            ->create();
+        // テストユーザー3を作成
+        $testUser3 = User::factory()->create([
+            'name' => 'テストユーザー3',
+            'email' => 'test3@example.com',
+            'password' => 'password123',
+        ]);
+
+        // テストユーザー4を作成
+        $testUser4 = User::factory()->create([
+            'name' => 'テストユーザー4',
+            'email' => 'test4@example.com',
+            'password' => 'password123',
+        ]);
+
+        // テストユーザー5を作成
+        $testUser5 = User::factory()->create([
+            'name' => 'テストユーザー5',
+            'email' => 'test5@example.com',
+            'password' => 'password123',
+        ]);
 
         // すべてのユーザーをまとめる
-        $allUsers = collect([$testUser1, $testUser2])->merge($users);
+        $allUsers = collect([$testUser1, $testUser2, $testUser3, $testUser4, $testUser5]);
 
         // Todo1: テストユーザー1に関連付け
         Todo::factory()->create([
