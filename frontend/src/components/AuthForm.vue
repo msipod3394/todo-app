@@ -6,7 +6,7 @@
       <!-- タイトル -->
       <div class="text-center mb-8">
         <h1 class="text-lg font-semibold text-slate-900">
-          {{ isRegister ? "新規ユーザー登録" : "ログイン" }}
+          {{ isSignup ? "新規ユーザー登録" : "ログイン" }}
         </h1>
       </div>
 
@@ -41,7 +41,7 @@
             class="w-full bg-slate-900 text-white hover:bg-slate-800"
             :disabled="isSubmitting"
           >
-            {{ isRegister ? "登録する" : "ログイン" }}
+            {{ isSignup ? "登録する" : "ログイン" }}
           </Button>
         </div>
       </form>
@@ -50,7 +50,7 @@
       <div class="text-center mt-6">
         <p class="text-sm text-gray-600">
           {{
-            isRegister
+            isSignup
               ? "既にアカウントをお持ちですか？"
               : "アカウントをお持ちでない方"
           }}
@@ -60,7 +60,7 @@
           type="button"
           class="text-sm text-slate-900 hover:text-slate-700 underline mt-1"
         >
-          {{ isRegister ? "ログインはこちら" : "新規登録はこちら" }}
+          {{ isSignup ? "ログインはこちら" : "新規登録はこちら" }}
         </button>
       </div>
     </div>
@@ -77,11 +77,11 @@ import AuthFormField from "@/components/ui/AuthFormField.vue";
 import { authSchema, type AuthFormData } from "@/lib/validation";
 
 interface Props {
-  isRegister?: boolean;
+  isSignup?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isRegister: false,
+  isSignup: false,
 });
 
 const emit = defineEmits<{
@@ -144,10 +144,10 @@ const switchAuthMode = (): void => {
   resetForm();
   hasSubmitted.value = false;
 
-  if (props.isRegister) {
-    router.push("/login");
+  if (props.isSignup) {
+    router.push("/signin");
   } else {
-    router.push("/register");
+    router.push("/signup");
   }
 };
 </script>

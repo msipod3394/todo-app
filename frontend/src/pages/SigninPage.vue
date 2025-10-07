@@ -1,9 +1,12 @@
 <template>
   <div>
-    <AuthForm :is-register="false" @submit="handleLogin" />
-    
+    <AuthForm :is-signup="false" @submit="handleSignin" />
+
     <!-- エラーメッセージ表示 -->
-    <div v-if="authStore.hasErrors" class="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-sm">
+    <div
+      v-if="authStore.hasErrors"
+      class="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-sm"
+    >
       <div v-for="error in authStore.errors" :key="error">
         {{ error }}
       </div>
@@ -21,14 +24,13 @@ import type { AuthFormData } from "@/lib/validation";
 const router = useRouter();
 const authStore = useAuthStore();
 
-const handleLogin = async (formData: AuthFormData): Promise<void> => {
-  const result = await authStore.login(formData);
-  
+const handleSignin = async (formData: AuthFormData): Promise<void> => {
+  const result = await authStore.signin(formData);
+
   if (result.success) {
     // ログイン成功時はTodoページにリダイレクト
     router.push("/");
   }
-  // エラーの場合はストア内でエラーメッセージがセットされ、テンプレートで表示される
 };
 
 // コンポーネント初期化時にエラーをクリア

@@ -35,11 +35,11 @@ const handleLogout = async (): Promise<void> => {
 
   if (result.success) {
     // ログアウト成功時はログインページにリダイレクト
-    router.push("/login");
+    router.push("/signin");
   }
   // エラーが発生してもローカル状態はクリアされるため、ログインページにリダイレクト
   else {
-    router.push("/login");
+    router.push("/signin");
   }
 };
 </script>

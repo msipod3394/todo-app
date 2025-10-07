@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/useAuthStore";
 import TodoApp from "@/components/TodoApp.vue";
-import LoginPage from "@/pages/LoginPage.vue";
-import RegisterPage from "@/pages/RegisterPage.vue";
+import SigninPage from "@/pages/SigninPage.vue";
+import SignupPage from "@/pages/SignupPage.vue";
 
 const routes = [
   {
@@ -12,15 +12,15 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: "/login",
-    name: "Login",
-    component: LoginPage,
+    path: "/signin",
+    name: "Signin",
+    component: SigninPage,
     meta: { requiresAuth: false },
   },
   {
-    path: "/register",
-    name: "Register",
-    component: RegisterPage,
+    path: "/signup",
+    name: "Signup",
+    component: SignupPage,
     meta: { requiresAuth: false },
   },
 ];
@@ -36,7 +36,7 @@ router.beforeEach((to, from, next) => {
 
   // 認証が必要なページの場合
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next("/login");
+    next("/signin");
   }
   // 認証済みユーザーがログイン・登録ページにアクセスした場合
   else if (!to.meta.requiresAuth && authStore.isAuthenticated) {

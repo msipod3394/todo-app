@@ -13,12 +13,12 @@ export const authSchema = z.object({
 });
 
 // 新規登録用（将来的に確認パスワードなどを追加予定）
-export const registerSchema = authSchema;
+export const signupSchema = authSchema;
 
 // ログイン用
-export const loginSchema = authSchema;
+export const signinSchema = authSchema;
 
 // 型定義
 export type AuthFormData = z.infer<typeof authSchema>;
-export type RegisterFormData = z.infer<typeof registerSchema>;
-export type LoginFormData = z.infer<typeof loginSchema>;
+export type SignupFormData = z.infer<typeof signupSchema>;
+export type SigninFormData = z.infer<typeof signinSchema>;
